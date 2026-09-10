@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bass MIDI GUI">
+<title>Bass MIDI GUI v1.4 <span style="font-size:13px">iPhone v2</span> iPhone v2</title>
+<style>
+*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;margin:0;background:#f5f5f7;color:#1d1d1f;padding-bottom:30px}.app{max-width:1200px;margin:auto;padding:12px}.panel{background:#fff;border-radius:14px;padding:12px;margin-bottom:10px;box-shadow:0 1px 4px #0001}.top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}label{font-size:14px}.top input{width:72px;padding:8px}.button,button,select,input{font:inherit}.button,button{border:1px solid #bbb;border-radius:9px;background:#fff;padding:8px 11px;min-height:40px}.primary{font-weight:600;background:#eee}.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.grid-wrap{overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;border-radius:10px;width:100%}.grid{min-width:0}.music-table{border-collapse:collapse;min-width:1900px;background:#fff}.music-table th,.music-table td{border:1px solid #ddd;padding:4px;text-align:center;vertical-align:middle}.music-table th{background:#eee;position:sticky;top:0;z-index:2}.music-table tbody tr:nth-child(odd){background:#fafafa}.music-table th:nth-child(1),.music-table td:nth-child(1){width:48px}.music-table th:nth-child(2),.music-table td:nth-child(2){width:95px}.music-table th:nth-child(3),.music-table td:nth-child(3){width:300px}.music-table th:not(:nth-child(-n+3)),.music-table td:not(:nth-child(-n+3)){width:82px}.bar{font-weight:600}.key{width:75px}.chordbox{display:flex;gap:5px;align-items:center;justify-content:center}.chordbox select{width:145px}.oct{width:58px}.basscell{display:flex;flex-direction:column;gap:3px}.basscell input{width:76px;text-align:center;padding:7px 2px}.degree{font-size:13px;min-height:20px}.splitbox{font-size:12px}.splitbox label{display:block;margin-top:4px}.splitbox input{width:auto;min-height:auto}.message{margin-top:8px;font-size:13px;color:#555}.small{font-size:12px;color:#666}.hidden{display:none}@media(max-width:600px){.app{padding:8px}.panel{padding:9px}.top{gap:6px}.button,button{padding:7px 9px}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="panel"><div class="top"><label>BPM <input id="bpm" type="number" min="1" value="100"></label><label>小節数 <input id="bars" type="number" min="1" value="64"></label><button id="setBars">小節数設定</button><button id="add4">4小節追加</button><button id="set64">64小節に設定</button></div></div>
+<div class="panel"><div class="controls"><label>Bass入力分解能 <select id="resolution"><option>4分音符</option><option>8分音符</option><option>16分音符</option></select></label><button id="repeat">先頭N小節を繰り返す</button><button id="saveCsv">CSV保存</button><button id="loadCsv">CSV読み込み</button><button class="primary" id="makeMidi">MIDI生成</button><input id="csvFile" class="hidden" type="file" accept=".csv,text/csv"></div><div class="message" id="message">64小節を表示しています。Keyを選ぶと、各Bass音の度数が自動表示されます。</div></div>
+<div class="panel"><div class="grid-wrap"><div id="grid" class="grid"></div></div></div>
+</div>
+<script>
+const ROOTS=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const CHORD_TYPES=['','m','maj7','m7','7','m7b5','dim7','dim','aug'];
+const CHORDS=[];CHORD_TYPES.forEach(t=>ROOTS.forEach(r=>CHORDS.push(r+t)));
+const NOTE_TO_SEMITONE={C:0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,F:5,'F#':6,Gb:6,G:7,'G#':8,Ab:8,A:9,'A#':10,Bb:10,B:11};
+const DEGREE_NAMES=['Ⅰ','♭Ⅱ','Ⅱ','♭Ⅲ','Ⅲ','Ⅳ','♯Ⅳ/♭Ⅴ','Ⅴ','♭Ⅵ','Ⅵ','♭Ⅶ','Ⅶ'];
+const RES={ '4分音符':1,'8分音符':2,'16分音符':4 };
+let data=Array.from({length:64},()=>blankBar());
+function blankBar(){return {key:'C',split:false,chord:'',octave:3,chord_1_2:'',octave_1_2:3,chord_3_4:'',octave_3_4:3,bass:[]}}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function degree(note,key){if(!note||note.trim()==='-')return '';let m=note.trim().match(/^([A-Ga-g])([#b]?)(-?\d+)$/);if(!m)return '';let p=m[1].toUpperCase()+m[2], oct=Number(m[3]);if(NOTE_TO_SEMITONE[p]===undefined||oct<-1||oct>9)return '';return DEGREE_NAMES[(NOTE_TO_SEMITONE[p]-NOTE_TO_SEMITONE[key]+12)%12]}
+function selectHtml(values,value,cls=''){return `<select class="${cls}" data-value="${esc(value)}">${values.map(v=>`<option value="${esc(v)}" ${v===value?'selected':''}>${v||'なし'}</option>`).join('')}</select>`}
+function render(){
+ const sub=RES[document.getElementById('resolution').value];
+ const cells=4*sub;
+ let h='<table class="music-table"><thead><tr><th>Bar</th><th>Key</th><th>Chord / 設定</th>';
+ for(let i=1;i<=cells;i++)h+=`<th>${i}</th>`;
+ h+='</tr></thead><tbody>';
+ data.forEach((b,bi)=>{
+  h+=`<tr class="row" data-bar="${bi}"><td class="bar">${bi+1}</td><td>${selectHtml(ROOTS,b.key,'keySel')}</td><td class="chordbox">`;
+  if(b.split){
+   h+=`<div><div class="small">1-2拍</div>${selectHtml(CHORDS,b.chord_1_2,'c12')} <input class="oct oct12" type="number" min="-1" max="9" value="${b.octave_1_2}"><div class="small">3-4拍</div>${selectHtml(CHORDS,b.chord_3_4,'c34')} <input class="oct oct34" type="number" min="-1" max="9" value="${b.octave_3_4}"></div>`;
+  }else{
+   h+=`<div><div class="small">4拍</div>${selectHtml(CHORDS,b.chord,'chordSel')} <input class="oct chordOct" type="number" min="-1" max="9" value="${b.octave}"></div>`;
+  }
+  h+=`<div class="splitbox"><label><input type="checkbox" class="split" ${b.split?'checked':''}> 2拍分割</label></div></td>`;
+  for(let i=0;i<cells;i++){
+   let v=b.bass[i]??'-';
+   h+=`<td><div class="basscell"><input class="bass" data-i="${i}" value="${esc(v)}"><div class="degree">${degree(v,b.key)}</div></div></td>`;
+  }
+  h+='</tr>';
+ });
+ h+='</tbody></table>';
+ document.getElementById('grid').innerHTML=h;
+ document.getElementById('bars').value=data.length;
+ bindGrid();
+}function syncRow(row){const bi=+row.dataset.bar,b=data[bi];b.key=row.querySelector('.keySel').value;b.split=row.querySelector('.split').checked;if(b.split){b.chord_1_2=row.querySelector('.c12').value;b.chord_3_4=row.querySelector('.c34').value;b.octave_1_2=Number(row.querySelector('.oct12').value);b.octave_3_4=Number(row.querySelector('.oct34').value)}else{b.chord=row.querySelector('.chordSel').value;b.octave=Number(row.querySelector('.chordOct').value)}row.querySelectorAll('.bass').forEach((x,i)=>b.bass[i]=x.value.trim()||'-');row.querySelectorAll('.bass').forEach(x=>x.parentElement.querySelector('.degree').textContent=degree(x.value,b.key))}
+function bindGrid(){document.querySelectorAll('.row').forEach(row=>{row.querySelectorAll('select,input').forEach(el=>el.addEventListener('change',()=>{if(el.classList.contains('split')){syncRow(row);render()}else syncRow(row)}));row.querySelectorAll('.bass').forEach(el=>el.addEventListener('input',()=>syncRow(row)))});}
+function setBars(n){n=Math.max(1,Number(n)||1);while(data.length<n)data.push(blankBar());data.length=n;render()}
+function hasData(b){return (b.split?(b.chord_1_2||b.chord_3_4):(b.chord))||b.bass.some(x=>x&&x!=='-')}
+function lastBar(){let n=0;data.forEach((b,i)=>{if(hasData(b))n=i+1});return n}
+function noteMidi(s){if(!s||s==='-')return null;let m=s.trim().match(/^([A-Ga-g])([#b]?)(-?\d+)$/);if(!m)throw Error(`不正な音名です: ${s}`);let p=m[1].toUpperCase()+m[2],o=Number(m[3]);if(NOTE_TO_SEMITONE[p]===undefined)throw Error(`不正な音名です: ${s}`);let n=(o+1)*12+NOTE_TO_SEMITONE[p];if(n<0||n>127)throw Error(`MIDI範囲外です: ${s}`);return n}
+function chordNotes(s,o){if(!s)return [];let m=s.match(/^([A-G](?:#|b)?)(.*)$/);if(!m||NOTE_TO_SEMITONE[m[1]]===undefined)throw Error(`不正なコードです: ${s}`);const ints={'':[0,4,7],m:[0,3,7],maj7:[0,4,7,11],m7:[0,3,7,10],7:[0,4,7,10],m7b5:[0,3,6,10],dim7:[0,3,6,9],dim:[0,3,6],aug:[0,4,8]};if(!(m[2] in ints))throw Error(`未対応のコード種別です: ${s}`);let r=(o+1)*12+NOTE_TO_SEMITONE[m[1]];let ns=ints[m[2]].map(x=>r+x);if(ns.some(x=>x<0||x>127))throw Error(`コードの音域がMIDI範囲外です: ${s}`);return ns}
+function u16(n){return [n&255,(n>>8)&255]}function u32(n){return [(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255]}function vlq(n){let b=[n&127];while(n>>=7)b.unshift((n&127)|128);return b}
+function meta(delta,type,payload=[]){return [...vlq(delta),0xff,type,...vlq(payload.length),...payload]}
+function msg(delta,status,n,v){return [...vlq(delta),status,n,v]}
+function textBytes(s){return [...new TextEncoder().encode(s)]}
+function track(events){let bytes=[];events.forEach(e=>bytes.push(...e));bytes.push(...[0,255,47,0]);return [77,84,114,107,...u32(bytes.length),...bytes]}
+function makeMidi(){let end=lastBar();if(!end)throw Error('コードまたはベースが入力されている小節がありません。');let bpm=Number(document.getElementById('bpm').value);if(bpm<=0)throw Error('BPMは1以上にしてください。');data.slice(0,end).forEach(b=>{b.bass.forEach(noteMidi);if(b.split){if(b.chord_1_2)chordNotes(b.chord_1_2,b.octave_1_2);if(b.chord_3_4)chordNotes(b.chord_3_4,b.octave_3_4)}else if(b.chord)chordNotes(b.chord,b.octave)});const tpq=480;let tempo=Math.round(60000000/bpm);let t0=[meta(0,3,textBytes('Practice Info')),meta(0,88,[4,2,24,8]),meta(0,81,[(tempo>>>16)&255,(tempo>>>8)&255,tempo&255])];let ct=[meta(0,3,textBytes('Chords')),msg(0,192,0,0)];data.slice(0,end).forEach(b=>{let parts=b.split?[[b.chord_1_2,b.octave_1_2,2],[b.chord_3_4,b.octave_3_4,2]]:[[b.chord,b.octave,4]];parts.forEach(([c,o,beats])=>{let dur=tpq*beats;if(!c){ct.push(meta(dur,3,[]));return}let ns=chordNotes(c,o);ns.forEach((n,i)=>ct.push(msg(0,144,n,70)));ns.forEach((n,i)=>ct.push(msg(i===0?dur:0,128,n,0)))})});let bt=[meta(0,3,textBytes('Bass - Direct Input')),msg(0,192,0,32)];const sub=RES[document.getElementById('resolution').value];data.slice(0,end).forEach(b=>{let arr=b.bass.slice(0,4*sub);let dur=tpq*4/arr.length;arr.forEach(s=>{let n=noteMidi(s);if(n===null)bt.push(meta(dur,3,[]));else{bt.push(msg(0,144,n,80));bt.push(msg(dur,128,n,0))}})});let body=[77,84,104,100,...u32(6+track(t0).length+track(ct).length+track(bt).length),0,1,0,3,...u16(tpq),...track(t0),...track(ct),...track(bt)];return new Uint8Array(body)}
+function download(blob,name){let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function csvText(){let rows=[['bar','key','chord_split','chord','chord_octave','chord_1_2','chord_1_2_octave','chord_3_4','chord_3_4_octave','bass_resolution','bass_position','bass_note']];const r=document.getElementById('resolution').value;data.forEach((b,bi)=>b.bass.forEach((n,i)=>rows.push([bi+1,b.key,b.split?1:0,b.chord,b.octave,b.chord_1_2,b.octave_1_2,b.chord_3_4,b.octave_3_4,r,i+1,n])));return '\ufeff'+rows.map(a=>a.map(x=>`"${String(x??'').replaceAll('"','""')}"`).join(',')).join('\r\n')}
+function parseCsv(text){text=text.replace(/^\ufeff/,'');let rows=[];let row=[],cell='',q=false;for(let i=0;i<text.length;i++){let c=text[i];if(c==='"'){if(q&&text[i+1]==='"'){cell+='"';i++}else q=!q}else if(c===','&&!q){row.push(cell);cell=''}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(x=>x!==''))rows.push(row);row=[];cell=''}else cell+=c}if(cell||row.length){row.push(cell);rows.push(row)}return rows}
+function loadCsv(text){let rows=parseCsv(text);let head=rows.shift();let idx={};head.forEach((x,i)=>idx[x]=i);let map=new Map(),res=rows[0]?.[idx.bass_resolution]||'4分音符';rows.forEach(r=>{let bi=Number(r[idx.bar])-1;if(!Number.isFinite(bi)||bi<0)return;if(!map.has(bi))map.set(bi,blankBar());let b=map.get(bi);b.key=ROOTS.includes(r[idx.key])?r[idx.key]:'C';b.split=r[idx.chord_split]==='1';b.chord=r[idx.chord]||'';b.octave=Number(r[idx.chord_octave])||3;b.chord_1_2=r[idx.chord_1_2]||'';b.octave_1_2=Number(r[idx.chord_1_2_octave])||3;b.chord_3_4=r[idx.chord_3_4]||'';b.octave_3_4=Number(r[idx.chord_3_4_octave])||3;let p=Number(r[idx.bass_position])-1;if(p>=0)b.bass[p]=r[idx.bass_note]||'-'});let n=Math.max(0,...map.keys())+1;data=Array.from({length:n},(_,i)=>map.get(i)||blankBar());document.getElementById('resolution').value=RES[res]?res:'4分音符';render()}
+document.getElementById('setBars').onclick=()=>setBars(document.getElementById('bars').value);document.getElementById('add4').onclick=()=>setBars(data.length+4);document.getElementById('set64').onclick=()=>setBars(64);document.getElementById('resolution').onchange=()=>render();document.getElementById('saveCsv').onclick=()=>download(new Blob([csvText()],{type:'text/csv;charset=utf-8'}),'bass_practice.csv');document.getElementById('loadCsv').onclick=()=>document.getElementById('csvFile').click();document.getElementById('csvFile').onchange=e=>{let f=e.target.files[0];if(f){let r=new FileReader();r.onload=()=>loadCsv(r.result);r.readAsText(f,'utf-8')}e.target.value=''};document.getElementById('makeMidi').onclick=()=>{try{download(new Blob([makeMidi()],{type:'audio/midi'}),'bass_practice_direct_input.mid');document.getElementById('message').textContent=`MIDIを生成しました（${lastBar()}小節。末尾の空白小節は省略）。`}catch(e){alert(e.message)}};document.getElementById('repeat').onclick=()=>{let n=Number(prompt(`先頭何小節を繰り返しますか？\n（全体：${data.length}小節）`,'4'));if(!n||n<1||n>data.length)return;data=data.map((_,i)=>JSON.parse(JSON.stringify(data[i%n])));render()};render();
+</script>
+</body></html>
