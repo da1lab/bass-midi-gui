@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Bass MIDI GUI iPhone v9</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;margin:0;background:#f5f5f7;color:#111}
+header{position:sticky;top:0;background:#fff;border-bottom:1px solid #ccc;padding:10px;z-index:10}
+h1{font-size:18px;margin:0 0 8px}.tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+button,input,select{font-size:16px;min-height:38px}button{padding:5px 10px}
+main{padding:8px}.legend{font-size:16px;font-weight:700;margin:6px 0}
+.bar{background:#fff;border:1px solid #bbb;border-radius:9px;padding:8px;margin:8px 0;overflow-x:auto}
+.barhead{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px}.barhead b{font-size:17px}
+.chord{width:86px}.oct{width:48px}.bassrow{display:flex;gap:5px;min-width:max-content}
+.note{display:flex;flex-direction:column;align-items:center;gap:2px}.note input{width:52px;text-align:center;font-size:18px;font-weight:600}
+.spell{font-size:15px;min-height:30px}.deg{font-size:18px;font-weight:800;line-height:1.05}.keydeg{color:#188038}.chdeg{color:#7b1fa2}
+.small{font-size:13px;color:#666}.hidden{display:none}
+</style>
+</head>
+<body>
+<header><h1>Bass MIDI GUI iPhone v9</h1>
+<div class="tools">
+<label>BPM <input id="bpm" type="number" value="120" min="40" max="240" style="width:62px"></label>
+<label>分解能 <select id="res"><option>4分音符</option><option selected>8分音符</option><option>16分音符</option></select></label>
+<button onclick="addBars(4)">+4小節</button>
+<button onclick="saveProject()">プロジェクト保存</button>
+<button onclick="pick.click()">プロジェクト読込</button>
+<input id="pick" class="hidden" type="file" accept=".json,.bassproj,.txt,application/json,text/plain">
+</div>
+<div class="legend"><span style="color:#188038">● Keyから見た度数</span>　<span style="color:#7b1fa2">● コードルートから見た度数</span></div>
+<div class="small">PC v23 と共通の .json を読み書きできます。旧 .bassproj / .bassproj.txt も読込可能です。</div>
+</header><main id="bars"></main>
+<script>
+const ROOTS=['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'];
+const PC={'C':0,'C#':1,'Db':1,'D':2,'D#':3,'Eb':3,'E':4,'F':5,'F#':6,'Gb':6,'G':7,'G#':8,'Ab':8,'A':9,'A#':10,'Bb':10,'B':11};
+const SH={'C#':'Db','D#':'Eb','F#':'Gb','G#':'Ab','A#':'Bb'}, FL=Object.fromEntries(Object.entries(SH).map(([a,b])=>[b,a]));
+const DS=['Ⅰ','♯Ⅰ','Ⅱ','♯Ⅱ','Ⅲ','Ⅳ','♯Ⅳ','Ⅴ','♯Ⅴ','Ⅵ','♯Ⅵ','Ⅶ'], DF=['Ⅰ','♭Ⅱ','Ⅱ','♭Ⅲ','Ⅲ','Ⅳ','♭Ⅴ','Ⅴ','♭Ⅵ','Ⅵ','♭Ⅶ','Ⅶ'];
+const IN=['R','m2','M2','m3','M3','P4','A4/d5','P5','m6','M6','m7','M7'];
+let state={format:'bass-midi-gui-project',format_version:1,app:'Bass MIDI GUI iPhone',version:9,bpm:120,resolution:'8分音符',auto_low:'G2',auto_high:'F#3',visible_bars:8,bars:[]};
+function newBar(){return {key:'C',split:false,chord:'',octave:3,chord_1_2:'',octave_1_2:3,chord_3_4:'',octave_3_4:3,bass:[]}}
+for(let i=0;i<8;i++)state.bars.push(newBar());
+function parseNote(s){let m=(s||'').trim().match(/^([A-Ga-g])([#b]?)(-?\d+)?$/);if(!m)return null;let n=m[1].toUpperCase()+m[2];return PC[n]===undefined?null:{name:n,oct:m[3]===undefined?null:+m[3]}}
+function midiName(n,flat=false){let sharp=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'][n%12];let name=flat&&SH[sharp]?SH[sharp]:sharp;return name+(Math.floor(n/12)-1)}
+function normalizeNote(s){s=(s||'').trim();if(!s||s==='-')return s;let p=parseNote(s);if(!p)return s;if(p.oct!==null)return p.name+p.oct;let lo=43,hi=54;for(let n=lo;n<=hi;n++)if(n%12===PC[p.name])return p.name+(Math.floor(n/12)-1);return s}
+function chordRoot(c){let m=(c||'').trim().match(/^([A-Ga-g])([#b]?)/);return m?m[1].toUpperCase()+m[2]:''}
+function normalizeChord(c){c=(c||'').trim();let r=chordRoot(c);if(!r)return c;return r+c.slice(r.length)}
+function degree(n,k){let p=parseNote(n),q=parseNote(k);if(!p||!q)return '';let d=(PC[p.name]-PC[q.name]+12)%12;return p.name.includes('b')?DF[d]:DS[d]}
+function cint(n,c){let p=parseNote(n),r=chordRoot(c);if(!p||!r)return '';return IN[(PC[p.name]-PC[r]+12)%12]}
+function toggleNote(s){let p=parseNote(s);if(!p)return s;let nn=SH[p.name]||FL[p.name]||p.name;return nn+(p.oct===null?'':p.oct)}
+function toggleChord(c){c=normalizeChord(c);let r=chordRoot(c);if(!r)return c;let nr=SH[r]||FL[r]||r;return nr+c.slice(r.length)}
+function sub(){return {'4分音符':1,'8分音符':2,'16分音符':4}[state.resolution]||2}
+function copyPreviousBar(i){
+ if(i<=0)return;
+ let src=state.bars[i-1];
+ state.bars[i]=JSON.parse(JSON.stringify(src));
+ render();
+}
+function addBars(n){for(let i=0;i<n;i++)state.bars.push(newBar());render()}
+function render(){
+ state.bpm=+document.getElementById('bpm').value||120;state.resolution=document.getElementById('res').value;
+ let root=document.getElementById('bars');root.innerHTML='';let count=4*sub();
+ state.bars.forEach((b,bi)=>{
+  while(b.bass.length<count)b.bass.push(''); if(b.bass.length>count)b.bass=b.bass.slice(0,count);
+  let box=document.createElement('section');box.className='bar';
+  box.innerHTML=`<div class="barhead"><b>${bi+1}小節</b><button class="copybar" tabindex="-1" ${bi===0?'disabled':''}>copy</button><label>Key <select class="key">${ROOTS.map(x=>`<option ${x===b.key?'selected':''}>${x}</option>`).join('')}</select></label><label>Chord <input class="chord" value="${b.chord||''}"></label><button class="cspell" tabindex="-1">#/b</button><label>Oct <input class="oct" type="number" value="${b.octave||3}"></label></div><div class="bassrow"></div>`;
+  let key=box.querySelector('.key'),ch=box.querySelector('.chord'),row=box.querySelector('.bassrow');
+  box.querySelector('.copybar').onclick=()=>copyPreviousBar(bi);
+  key.onchange=()=>{b.key=key.value;refresh()};
+  ch.onblur=()=>{b.chord=normalizeChord(ch.value);ch.value=b.chord;refresh()}; ch.oninput=()=>{b.chord=normalizeChord(ch.value);refresh()};
+  box.querySelector('.cspell').onclick=()=>{b.chord=toggleChord(ch.value);ch.value=b.chord;refresh()};
+  box.querySelector('.oct').onchange=e=>b.octave=+e.target.value||3;
+  function refresh(){[...row.children].forEach((cell,i)=>{let n=b.bass[i]||'';cell.querySelector('.keydeg').textContent=degree(n,b.key);cell.querySelector('.chdeg').textContent=cint(n,b.chord)})}
+  for(let i=0;i<count;i++){let cell=document.createElement('div');cell.className='note';cell.innerHTML=`<input value="${b.bass[i]||''}"><button class="spell" tabindex="-1">#/b</button><div class="deg keydeg"></div><div class="deg chdeg"></div>`;let inp=cell.querySelector('input');inp.onblur=()=>{b.bass[i]=normalizeNote(inp.value);inp.value=b.bass[i];refresh()};inp.oninput=()=>b.bass[i]=inp.value;cell.querySelector('.spell').onclick=()=>{b.bass[i]=toggleNote(normalizeNote(inp.value));inp.value=b.bass[i];refresh()};row.appendChild(cell)}
+  refresh();root.appendChild(box)
+ })
+}
+document.getElementById('res').onchange=()=>{state.resolution=document.getElementById('res').value;render()};
+document.getElementById('bpm').onchange=()=>state.bpm=+document.getElementById('bpm').value||120;
+document.getElementById('pick').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let s=JSON.parse(await f.text());if(!Array.isArray(s.bars))throw Error('小節データがありません');if(s.format&&!['bassproj','bass-midi-gui-project'].includes(s.format))throw Error('Bass MIDI GUIのプロジェクト形式ではありません');state=s;document.getElementById('bpm').value=s.bpm||120;document.getElementById('res').value=s.resolution||'8分音符';render()}catch(err){alert('読込エラー: '+err.message)}e.target.value=''};
+function saveProject(){state.bpm=+document.getElementById('bpm').value||120;state.resolution=document.getElementById('res').value;state.format='bass-midi-gui-project';state.format_version=1;let blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='bass_project.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+render();
+</script></body></html>
