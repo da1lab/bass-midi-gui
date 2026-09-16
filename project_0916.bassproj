@@ -10,16 +10,16 @@
     {
       "key": "C",
       "split": false,
-      "chord": "",
+      "chord": "C",
       "octave": 3,
       "chord_1_2": "",
       "octave_1_2": 3,
       "chord_3_4": "",
       "octave_3_4": 3,
       "bass": [
+        "C3",
         "",
-        "",
-        "",
+        "G2",
         ""
       ]
     },
