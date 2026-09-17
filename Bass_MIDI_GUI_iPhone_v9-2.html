@@ -1,0 +1,112 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><title>Bass MIDI GUI iPhone v9-2</title>
+<style>body{font-family:-apple-system,sans-serif;margin:0;background:#f5f5f7}header{position:sticky;top:0;background:white;padding:8px;z-index:5;border-bottom:1px solid #bbb}h1{font-size:19px;margin:0}.tools{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-top:5px}button,input,select{font-size:16px;min-height:39px}.legend{font-weight:bold}.bar{background:white;margin:8px;padding:8px;border:1px solid #bbb;border-radius:8px;overflow-x:auto}.head,.bass{display:flex;gap:5px;align-items:center}.head{flex-wrap:wrap}.bass{min-width:max-content;margin-top:5px}.note{text-align:center}.note input{width:52px;font-size:18px;text-align:center}.deg{font-size:18px;font-weight:bold}.k{color:#188038}.c{color:#7b1fa2}.hidden{display:none}main{padding:3px}.page{font-weight:bold}.trackcard{background:white;border:1px solid #bbb;border-radius:9px;padding:10px;margin:8px 0;display:grid;grid-template-columns:80px 1fr 100px;gap:8px;align-items:center}.trackcard input{width:100%}.trackcount{text-align:right;font-weight:bold}@media(max-width:430px){.trackcard{grid-template-columns:70px 1fr}.trackcount{grid-column:1/3;text-align:left}}</style></head><body>
+<header><h1>Bass MIDI GUI iPhone v9-2</h1>
+<div class="tools"><label>Track <select id="tn"></select></label><button onclick="addTrack()">＋Track</button><label>名前 <input id="tname" style="width:110px"></label><button onclick="showTrackConfig()">トラック構成</button></div>
+<div class="tools"><label>BPM <input id="bpm" type="number" style="width:60px"></label><label>分解能 <select id="res"><option>4分音符</option><option>8分音符</option><option>16分音符</option></select></label><button onclick="addBars()">＋16小節</button></div>
+<div class="tools"><button onclick="tempSave()">一時保存</button><button onclick="tempLoad()">一時保存読込</button><button onclick="saveProject()">ファイル保存</button><button onclick="pick.click()">ファイル読込</button><input id="pick" class="hidden" type="file" accept=".json,.txt,application/json,text/plain"></div>
+<div class="tools"><button onclick="midiOne()">指定Track MIDI</button><button onclick="midiAll()">全Track MIDI</button></div>
+<div class="tools"><button onclick="move(-1)">←</button><span id="pi" class="page"></span><button onclick="move(1)">→</button></div>
+<div class="legend"><span class="k">● Keyから見た度数</span>　<span class="c">● コードルートから見た度数</span></div></header><main id="bars"></main>
+<section id="trackConfig" class="hidden" style="padding:10px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><button onclick="hideTrackConfig()">← 編集へ戻る</button><h2 style="margin:0">トラック構成</h2></div>
+<div class="small" style="margin-bottom:8px">各トラックの名前と、末尾の未入力小節を除いた入力済小節数を表示します。名前はこの画面で変更できます。</div>
+<div id="trackList"></div>
+</section>
+<script>
+const R=['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'],P={'C':0,'C#':1,'Db':1,'D':2,'D#':3,'Eb':3,'E':4,'F':5,'F#':6,'Gb':6,'G':7,'G#':8,'Ab':8,'A':9,'A#':10,'Bb':10,'B':11},SH={'C#':'Db','D#':'Eb','F#':'Gb','G#':'Ab','A#':'Bb'},FL=Object.fromEntries(Object.entries(SH).map(([a,b])=>[b,a])),DS=['Ⅰ','♯Ⅰ','Ⅱ','♯Ⅱ','Ⅲ','Ⅳ','♯Ⅳ','Ⅴ','♯Ⅴ','Ⅵ','♯Ⅵ','Ⅶ'],DF=['Ⅰ','♭Ⅱ','Ⅱ','♭Ⅲ','Ⅲ','Ⅳ','♭Ⅴ','Ⅴ','♭Ⅵ','Ⅵ','♭Ⅶ','Ⅶ'],IV=['R','m2','M2','m3','M3','P4','A4/d5','P5','m6','M6','m7','M7'];
+const PAGE=16,TEMP='bass_gui_v9_2_temp';let pg=0,cur=0;
+const nb=()=>({key:'C',chord:'',octave:3,bass:[]}),nt=n=>({no:n,name:'Track '+String(n).padStart(2,'0'),bpm:120,resolution:'8分音符',bars:Array.from({length:16},nb)});
+let project={format:'bass-midi-gui-multitrack',format_version:2,version:'9-2',project_name:'bass_project',tracks:[nt(1)]};const tr=()=>project.tracks[cur],sub=()=>({'4分音符':1,'8分音符':2,'16分音符':4}[tr().resolution]||2);
+function pn(s){let m=(s||'').trim().match(/^([A-Ga-g])([#b]?)(-?\d+)?$/);if(!m)return null;let n=m[1].toUpperCase()+m[2];return P[n]===undefined?null:{n,oct:m[3]==null?null:+m[3]}}
+function nn(s){s=(s||'').trim();if(!s||s==='-')return s;let q=pn(s);if(!q)return s;if(q.oct!=null)return q.n+q.oct;for(let n=43;n<=54;n++)if(n%12===P[q.n])return q.n+(Math.floor(n/12)-1);return s}
+function cr(s){let m=(s||'').trim().match(/^([A-Ga-g])([#b]?)/);return m?m[1].toUpperCase()+m[2]:''}function nc(s){s=(s||'').trim();let r=cr(s),m=s.match(/^([A-Ga-g])([#b]?)/);return r&&m?r+s.slice(m[0].length):s}
+function dg(n,k){let a=pn(n),b=pn(k);if(!a||!b)return'';let d=(P[a.n]-P[b.n]+12)%12;return a.n.includes('b')?DF[d]:DS[d]}function ci(n,c){let a=pn(n),r=cr(c);return a&&r?IV[(P[a.n]-P[r]+12)%12]:''}
+function tog(s){let q=pn(s);if(!q)return s;let n=SH[q.n]||FL[q.n]||q.n;return n+(q.oct==null?'':q.oct)}function togc(s){s=nc(s);let r=cr(s);return r?(SH[r]||FL[r]||r)+s.slice(r.length):s}
+function sync(){let t=tr();t.bpm=+bpm.value||120;t.resolution=res.value;t.name=tname.value||('Track '+String(t.no).padStart(2,'0'))}function top(){let t=tr();bpm.value=t.bpm;res.value=t.resolution;tname.value=t.name;tn.innerHTML=project.tracks.map((x,i)=>`<option value="${i}" ${i===cur?'selected':''}>${x.no}</option>`).join('')}
+tn.onchange=()=>{sync();cur=+tn.value;pg=0;top();render()};bpm.onchange=sync;res.onchange=()=>{sync();render()};tname.onchange=sync;
+function addTrack(){sync();let n=Math.max(...project.tracks.map(x=>x.no))+1;project.tracks.push(nt(n));cur=project.tracks.length-1;pg=0;top();render()}function addBars(){for(let i=0;i<16;i++)tr().bars.push(nb());render()}function copy(i){if(i>0){tr().bars[i]=JSON.parse(JSON.stringify(tr().bars[i-1]));render()}}
+function move(d){let np=pg+d;if(np<0)return;if(np*PAGE>=tr().bars.length){if(d>0)addBars();else return}pg=np;render()}
+function render(){sync();let t=tr(),n=4*sub(),st=pg*PAGE,en=Math.min(st+PAGE,t.bars.length);pi.textContent=`${st+1}–${st+16}小節`;bars.innerHTML='';
+for(let bi=st;bi<en;bi++){let b=t.bars[bi];while(b.bass.length<n)b.bass.push('');b.bass=b.bass.slice(0,n);let x=document.createElement('section');x.className='bar';x.innerHTML=`<div class="head"><b>${bi+1}小節</b><button tabindex="-1" ${bi?'':'disabled'}>copy</button><label>Key <select>${R.map(r=>`<option ${r===b.key?'selected':''}>${r}</option>`).join('')}</select></label><label>Chord <input value="${b.chord}"></label><button tabindex="-1">#/b</button></div><div class="bass"></div>`;
+let [cp,cs,ch,cb]=[x.querySelectorAll('button')[0],x.querySelector('select'),x.querySelector('input'),x.querySelectorAll('button')[1]],row=x.querySelector('.bass');cp.onclick=()=>copy(bi);cs.onchange=()=>{b.key=cs.value;rf()};ch.onblur=()=>{b.chord=nc(ch.value);ch.value=b.chord;rf()};ch.oninput=()=>{b.chord=nc(ch.value);rf()};cb.onclick=()=>{b.chord=togc(ch.value);ch.value=b.chord;rf()};
+function rf(){[...row.children].forEach((z,i)=>{z.querySelector('.k').textContent=dg(b.bass[i],b.key);z.querySelector('.c').textContent=ci(b.bass[i],b.chord)})}
+for(let i=0;i<n;i++){let z=document.createElement('div');z.className='note';z.innerHTML=`<input value="${b.bass[i]}"><br><button tabindex="-1">#/b</button><div class="deg k"></div><div class="deg c"></div>`;let q=z.querySelector('input');q.oninput=()=>b.bass[i]=q.value;q.onblur=()=>{b.bass[i]=nn(q.value);q.value=b.bass[i];rf()};z.querySelector('button').onclick=()=>{b.bass[i]=tog(nn(q.value));q.value=b.bass[i];rf()};row.appendChild(z)}rf();bars.appendChild(x)}}
+function tempSave(){sync();localStorage.setItem(TEMP,JSON.stringify(project));alert('一時保存しました')}function tempLoad(){let s=localStorage.getItem(TEMP);if(!s)return alert('一時保存データがありません');project=JSON.parse(s);cur=pg=0;
+function inputBars(t){
+ let last=-1;
+ for(let i=0;i<t.bars.length;i++){
+  let b=t.bars[i]||{}, hasChord=!!(b.chord||b.chord_1_2||b.chord_3_4);
+  let hasBass=(b.bass||[]).some(x=>x&&x!=='-');
+  if(hasChord||hasBass)last=i;
+ }
+ return last+1;
+}
+function showTrackConfig(){
+ sync();
+ document.querySelector('header').classList.add('hidden');
+ document.getElementById('bars').classList.add('hidden');
+ document.getElementById('trackConfig').classList.remove('hidden');
+ renderTrackConfig();
+}
+function hideTrackConfig(){
+ document.getElementById('trackConfig').classList.add('hidden');
+ document.querySelector('header').classList.remove('hidden');
+ document.getElementById('bars').classList.remove('hidden');
+ top();render();
+}
+function renderTrackConfig(){
+ let list=document.getElementById('trackList');list.innerHTML='';
+ project.tracks.forEach((t,i)=>{
+  let d=document.createElement('div');d.className='trackcard';
+  d.innerHTML=`<b>Track ${String(t.no).padStart(2,'0')}</b><input value="${(t.name||('Track '+String(t.no).padStart(2,'0'))).replace(/"/g,'&quot;')}"><div class="trackcount">入力済 ${inputBars(t)} 小節</div>`;
+  let inp=d.querySelector('input');
+  inp.oninput=()=>{t.name=inp.value};
+  inp.onblur=()=>{if(!inp.value.trim())inp.value=t.name='Track '+String(t.no).padStart(2,'0')};
+  list.appendChild(d);
+ });
+}
+top();render();alert('一時保存を読み込みました')}
+const safe=s=>(s||'bass_project').replace(/[\\/:*?"<>|]/g,'_');
+async function shareFile(file,title){if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title});return true}return false}
+async function saveProject(){sync();let n=prompt('ファイル名',safe(project.project_name));if(n===null)return;n=safe(n.replace(/\.json$/i,''));project.project_name=n;let f=new File([JSON.stringify(project,null,2)],n+'.json',{type:'application/json'});try{if(await shareFile(f,n))return}catch(e){if(e.name==='AbortError')return}alert('このSafariでは直接「ファイルに保存」を呼び出せません。共有シート対応環境で「ファイルに保存」を選択してください。')}
+pick.onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let s=JSON.parse(await f.text());if(s.format==='bass-midi-gui-multitrack')project=s;else if(Array.isArray(s.bars))project={format:'bass-midi-gui-multitrack',format_version:2,version:'9-2',project_name:f.name.replace(/\..*/,''),tracks:[{no:1,name:'Track 01',bpm:s.bpm||120,resolution:s.resolution||'8分音符',bars:s.bars}]};else throw Error('データ形式不正');cur=pg=0;top();render()}catch(e){alert('読込エラー: '+e.message)}pick.value=''};
+function last(t){for(let i=t.bars.length-1;i>=0;i--){let b=t.bars[i];if(b.chord||(b.bass||[]).some(x=>x&&x!=='-'))return i}return-1}function mn(s){let q=pn(s);return q&&q.oct!=null?(q.oct+1)*12+P[q.n]:null}function vlq(n){let a=[n&127];while(n>>=7)a.unshift((n&127)|128);return a}function u32(n){return[n>>>24&255,n>>>16&255,n>>>8&255,n&255]}function ascii(s){return[...s].map(x=>x.charCodeAt(0))}
+function makeMidi(t){let L=last(t);if(L<0)throw Error('入力されたデータがありません');let Q=480,s={'4分音符':1,'8分音符':2,'16分音符':4}[t.resolution]||2,ev=[],tempo=Math.round(6e7/(t.bpm||120));ev.push({x:0,d:[255,81,3,tempo>>16&255,tempo>>8&255,tempo&255]},{x:0,d:[193,33]});for(let b=0;b<=L;b++)for(let i=0;i<4*s;i++){let n=mn((t.bars[b].bass||[])[i]);if(n==null)continue;let a=Math.round((b*4+i/s)*Q),z=Math.round(a+Q/s*.9);ev.push({x:a,d:[145,n,92]},{x:z,d:[129,n,0]})}ev.sort((a,b)=>a.x-b.x);let d=[],p=0;for(let e of ev){d.push(...vlq(e.x-p),...e.d);p=e.x}d.push(0,255,47,0);return new Uint8Array([...ascii('MThd'),...u32(6),0,0,0,1,1,224,...ascii('MTrk'),...u32(d.length),...d])}
+async function midiOne(){sync();let t=tr();try{let f=new File([makeMidi(t)],safe(project.project_name)+'_track'+t.no+'.mid',{type:'audio/midi'});if(!await shareFile(f,f.name))alert('MIDIファイル共有に未対応です')}catch(e){if(e.name!=='AbortError')alert(e.message)}}
+async function midiAll(){sync();let ts=project.tracks.filter(t=>last(t)>=0);if(!ts.length)return alert('入力されたデータがありません');for(let t of ts){try{let f=new File([makeMidi(t)],safe(project.project_name)+'_track'+t.no+'.mid',{type:'audio/midi'});if(!await shareFile(f,f.name)){alert('MIDIファイル共有に未対応です');break}}catch(e){if(e.name==='AbortError')break;alert(e.message);break}}}
+
+function inputBars(t){
+ let last=-1;
+ for(let i=0;i<t.bars.length;i++){
+  let b=t.bars[i]||{}, hasChord=!!(b.chord||b.chord_1_2||b.chord_3_4);
+  let hasBass=(b.bass||[]).some(x=>x&&x!=='-');
+  if(hasChord||hasBass)last=i;
+ }
+ return last+1;
+}
+function showTrackConfig(){
+ sync();
+ document.querySelector('header').classList.add('hidden');
+ document.getElementById('bars').classList.add('hidden');
+ document.getElementById('trackConfig').classList.remove('hidden');
+ renderTrackConfig();
+}
+function hideTrackConfig(){
+ document.getElementById('trackConfig').classList.add('hidden');
+ document.querySelector('header').classList.remove('hidden');
+ document.getElementById('bars').classList.remove('hidden');
+ top();render();
+}
+function renderTrackConfig(){
+ let list=document.getElementById('trackList');list.innerHTML='';
+ project.tracks.forEach((t,i)=>{
+  let d=document.createElement('div');d.className='trackcard';
+  d.innerHTML=`<b>Track ${String(t.no).padStart(2,'0')}</b><input value="${(t.name||('Track '+String(t.no).padStart(2,'0'))).replace(/"/g,'&quot;')}"><div class="trackcount">入力済 ${inputBars(t)} 小節</div>`;
+  let inp=d.querySelector('input');
+  inp.oninput=()=>{t.name=inp.value};
+  inp.onblur=()=>{if(!inp.value.trim())inp.value=t.name='Track '+String(t.no).padStart(2,'0')};
+  list.appendChild(d);
+ });
+}
+top();render();
+</script></body></html>
