@@ -9,6 +9,8 @@ from pathlib import Path
 import subprocess
 import sys
 import shutil
+import os
+import re
 from mido import MidiFile, MidiTrack, Message, MetaMessage, bpm2tempo, tempo2bpm
 
 TICKS_PER_BEAT = 480
@@ -229,6 +231,31 @@ class App:
         self.build_top()
         self.render()
 
+    def rebuild_editor_screen(self):
+        """サブ画面から通常編集画面へ安全に戻す共通処理。"""
+        # 旧画面を完全破棄
+        for w in self.root.winfo_children():
+            try:w.destroy()
+            except:pass
+        self.widgets=[]
+        self.committers=[]
+        self.input_focus_widgets=[]
+        # データ側を先に確定。UI変数は既存のTk変数を使う。
+        self.current_track=max(0,min(self.current_track,len(self.tracks)-1))
+        t=self.tracks[self.current_track]
+        self.data=t['bars']
+        self.bars_var.set(len(self.data))
+        self.bpm_var.set(int(t.get('bpm',DEFAULT_BPM)))
+        self.res_var.set(t.get('resolution','4分音符'))
+        self.auto_low_var.set(t.get('auto_low','G2'))
+        self.auto_high_var.set(t.get('auto_high','F#3'))
+        self.page=max(0,min(self.page,max(0,(len(self.data)-1)//max(1,self.get_visible_bars()))))
+        # UIを新規作成してから、UI依存値を反映
+        self.build_top()
+        self.track_name_var.set(t.get('name',f'JBR_{self.current_track+1:02d}_'))
+        self.refresh_track_box()
+        self.render()
+
     def build_top(self):
         top=ttk.Frame(self.root)
         top.pack(fill='x',padx=8,pady=6)
@@ -300,15 +327,15 @@ class App:
         self.sync_track_settings()
         folder=filedialog.askdirectory(title='MIDI保存先フォルダを選択')
         if not folder:return
-        original=self.track_index
+        original=self.current_track
         try:
             for i in indices:
-                self.track_index=i
+                self.current_track=i
                 self.load_track_settings()
                 path=os.path.join(folder,self.safe_midi_filename(self.tracks[i].get('name'),i))
                 self.create_midi_current(path)
         finally:
-            self.track_index=max(0,min(original,len(self.tracks)-1))
+            self.current_track=max(0,min(original,len(self.tracks)-1))
             self.load_track_settings()
 
     def open_midi_export(self):
@@ -350,7 +377,7 @@ class App:
             win.destroy()
             self.export_midi_tracks(range(len(self.tracks)))
         def current_ex():
-            idx=self.track_index
+            idx=self.current_track
             win.destroy()
             self.export_midi_tracks([idx])
         ttk.Button(buttons,text='チェックしたExを出力',command=checked).pack(side='left',padx=3)
@@ -369,53 +396,47 @@ class App:
         self.render_file_menu_page()
 
     def render_file_menu_page(self):
-        """ファイル関係の操作をメインウインドウ全体に表示する。"""
+        """ファイル操作をメインウインドウ内の1ページとして表示する。"""
         for w in self.root.winfo_children():
             w.destroy()
         page=ttk.Frame(self.root,padding=(24,18))
         page.pack(fill='both',expand=True)
+
         top=ttk.Frame(page)
-        top.pack(fill='x',pady=(0,20))
+        top.pack(fill='x',pady=(0,18))
         ttk.Button(top,text='← 編集画面に戻る',command=self.close_file_menu).pack(side='left')
         ttk.Label(top,text='ファイル',font=('',18,'bold')).pack(side='left',padx=18)
 
+        # gridだけに依存せず、縦並びで確実に全操作を表示する。
         body=ttk.Frame(page)
         body.pack(fill='both',expand=True)
-        body.columnconfigure(0,weight=1)
-        body.columnconfigure(1,weight=1)
 
-        temp=ttk.LabelFrame(body,text='一時保存',padding=16)
-        temp.grid(row=0,column=0,padx=(0,10),pady=8,sticky='nsew')
-        ttk.Button(temp,text='一時保存',command=self.temp_save).pack(fill='x',pady=5,ipady=5)
-        ttk.Button(temp,text='一時保存読込',command=self.temp_load).pack(fill='x',pady=5,ipady=5)
+        temp=ttk.LabelFrame(body,text='一時保存',padding=14)
+        temp.pack(fill='x',pady=(0,10))
+        ttk.Button(temp,text='一時保存',command=self.save_temp_work).pack(side='left',fill='x',expand=True,padx=(0,5),ipady=6)
+        ttk.Button(temp,text='一時保存読込',command=self.load_temp_work).pack(side='left',fill='x',expand=True,padx=(5,0),ipady=6)
 
-        project=ttk.LabelFrame(body,text='プロジェクト',padding=16)
-        project.grid(row=0,column=1,padx=(10,0),pady=8,sticky='nsew')
-        ttk.Button(project,text='ファイル保存',command=self.save_project).pack(fill='x',pady=5,ipady=5)
-        ttk.Button(project,text='ファイル読込',command=self.load_project).pack(fill='x',pady=5,ipady=5)
+        project=ttk.LabelFrame(body,text='プロジェクト',padding=14)
+        project.pack(fill='x',pady=10)
+        ttk.Button(project,text='プロジェクト保存',command=self.save_project).pack(side='left',fill='x',expand=True,padx=(0,5),ipady=6)
+        ttk.Button(project,text='プロジェクト読込',command=self.load_project).pack(side='left',fill='x',expand=True,padx=(5,0),ipady=6)
 
-        midi=ttk.LabelFrame(body,text='MIDI',padding=16)
-        midi.grid(row=1,column=0,padx=(0,10),pady=8,sticky='nsew')
-        ttk.Button(midi,text='MIDI出力',command=self.open_midi_export).pack(fill='x',pady=5,ipady=5)
-        ttk.Button(midi,text='MIDI読込',command=self.load_midi).pack(fill='x',pady=5,ipady=5)
-        ttk.Button(midi,text='MIDI再生',command=self.play_midi).pack(fill='x',pady=5,ipady=5)
-        ttk.Button(midi,text='停止',command=self.stop_midi).pack(fill='x',pady=5,ipady=5)
+        midi=ttk.LabelFrame(body,text='MIDI',padding=14)
+        midi.pack(fill='x',pady=10)
+        ttk.Button(midi,text='MIDI出力',command=self.open_midi_export).pack(side='left',fill='x',expand=True,padx=(0,4),ipady=6)
+        ttk.Button(midi,text='MIDI読込',command=self.load_midi).pack(side='left',fill='x',expand=True,padx=4,ipady=6)
+        ttk.Button(midi,text='MIDI再生',command=self.play_midi).pack(side='left',fill='x',expand=True,padx=4,ipady=6)
+        ttk.Button(midi,text='停止',command=self.stop_midi).pack(side='left',fill='x',expand=True,padx=(4,0),ipady=6)
 
-        csvbox=ttk.LabelFrame(body,text='CSV',padding=16)
-        csvbox.grid(row=1,column=1,padx=(10,0),pady=8,sticky='nsew')
-        ttk.Button(csvbox,text='CSV保存',command=self.save_csv).pack(fill='x',pady=5,ipady=5)
-        ttk.Button(csvbox,text='CSV読込',command=self.load_csv).pack(fill='x',pady=5,ipady=5)
+        csvbox=ttk.LabelFrame(body,text='CSV',padding=14)
+        csvbox.pack(fill='x',pady=10)
+        ttk.Button(csvbox,text='CSV保存',command=self.save_csv).pack(side='left',fill='x',expand=True,padx=(0,5),ipady=6)
+        ttk.Button(csvbox,text='CSV読込',command=self.load_csv).pack(side='left',fill='x',expand=True,padx=(5,0),ipady=6)
 
     def close_file_menu(self):
-        """ファイルページを閉じ、通常の編集画面へ戻る。"""
+        """ファイルページから通常編集画面へ戻る。"""
         self._file_menu_active=False
-        for w in self.root.winfo_children():
-            w.destroy()
-        self.widgets=[]
-        self.committers=[]
-        self.build_top()
-        self.load_track_settings()
-        self.render()
+        self.rebuild_editor_screen()
 
     def track_input_bar_count(self,t):
         """入力がある小節数を数える。途中の空白小節は数えない。"""
@@ -500,16 +521,10 @@ class App:
                 self.tracks[idx]['name']=var.get()
 
     def close_track_config(self):
-        """トラック構成ページを破棄し、通常の編集画面を作り直す。"""
+        """トラック構成ページから通常編集画面へ戻る。"""
         self.save_visible_track_names()
         self._track_config_active=False
-        for w in self.root.winfo_children():
-            w.destroy()
-        self.widgets=[]
-        self.committers=[]
-        self.build_top()
-        self.load_track_settings()
-        self.render()
+        self.rebuild_editor_screen()
 
     def change_track_config_page(self,delta):
         self.save_visible_track_names()
@@ -562,7 +577,7 @@ class App:
         if not self.tracks:
             return
         t=self.tracks[self.current_track]
-        t['name']=self.track_name_var.get().strip() or f"Track {int(t.get('no',self.current_track+1)):02d}"
+        t['name']=self.track_name_var.get().strip() or f"JBR_{int(t.get('no',self.current_track+1)):02d}_"
         t['bpm']=int(self.bpm_var.get())
         t['resolution']=self.res_var.get()
         t['auto_low']=self.auto_low_var.get()
