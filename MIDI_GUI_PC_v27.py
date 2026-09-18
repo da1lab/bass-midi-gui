@@ -395,132 +395,126 @@ class App:
         return count
 
     def open_track_config(self):
-        """Track名編集・入力済小節数・8Track単位ページ・削除/元に戻す。"""
+        """メインウインドウ内でトラック構成画面へ移動する。"""
         self.commit_current_view()
         self.sync_track_settings()
-        win=tk.Toplevel(self.root)
-        win.title('トラック構成')
-        win.transient(self.root)
-        win.geometry('650x430')
-        win.resizable(False,False)
-        outer=ttk.Frame(win,padding=12)
-        outer.pack(fill='both',expand=True)
+        # メイン画面の直下ウィジェットを一時的に隠す
+        main_children=list(self.root.winfo_children())
+        layouts=[]
+        for w in main_children:
+            manager=w.winfo_manager()
+            info={}
+            try:
+                if manager=='pack':info=w.pack_info()
+                elif manager=='grid':info=w.grid_info()
+            except:pass
+            layouts.append((w,manager,info))
+            if manager=='pack':w.pack_forget()
+            elif manager=='grid':w.grid_remove()
+        page=ttk.Frame(self.root,padding=12)
+        page.pack(fill='both',expand=True)
+        self._track_config_page=page
+        self._track_config_hidden=layouts
+        self._track_config_page_no=0
+
+        top=ttk.Frame(page)
+        top.pack(fill='x',pady=(0,10))
+        ttk.Button(top,text='← 戻る',command=self.close_track_config).pack(side='left')
+        ttk.Label(top,text='トラック構成',font=('',16,'bold')).pack(side='left',padx=16)
+        ttk.Button(top,text='+ トラック追加',command=lambda:self.add_track_from_config()).pack(side='right')
+        ttk.Button(top,text='元に戻す',command=lambda:self.undo_delete_from_config()).pack(side='right',padx=6)
+
+        self._track_config_body=ttk.Frame(page)
+        self._track_config_body.pack(fill='both',expand=True)
+        nav=ttk.Frame(page)
+        nav.pack(fill='x',pady=(10,0))
+        self._track_config_prev=ttk.Button(nav,text='◀',command=lambda:self.change_track_config_page(-1))
+        self._track_config_prev.pack(side='left')
+        self._track_config_page_label=ttk.Label(nav,text='',anchor='center')
+        self._track_config_page_label.pack(side='left',fill='x',expand=True)
+        self._track_config_next=ttk.Button(nav,text='▶',command=lambda:self.change_track_config_page(1))
+        self._track_config_next.pack(side='right')
+        self.refresh_track_config()
+
+    def close_track_config(self):
+        """トラック構成画面を閉じ、元の編集画面へ戻る。"""
+        page=getattr(self,'_track_config_page',None)
+        if page and page.winfo_exists():page.destroy()
+        # 元画面は既存レイアウトを壊さないよう、geometry manager情報を使って復元
+        for w,manager,info in getattr(self,'_track_config_hidden',[]):
+            if not w.winfo_exists():continue
+            try:
+                if manager=='pack':w.pack(**info)
+                elif manager=='grid':w.grid()
+            except:pass
+        self._track_config_page=None
+        self.refresh()
+
+    def refresh_track_config(self):
+        body=self._track_config_body
+        for w in body.winfo_children():w.destroy()
         page_size=8
-        state={'page':0,'undo':None}
-        name_vars={}
+        total=max(1,(len(self.tracks)+page_size-1)//page_size)
+        self._track_config_page_no=max(0,min(self._track_config_page_no,total-1))
+        start=self._track_config_page_no*page_size
+        end=min(start+page_size,len(self.tracks))
+        header=ttk.Frame(body)
+        header.pack(fill='x',pady=(0,5))
+        ttk.Label(header,text='Ex',width=10,anchor='center',font=('',11,'bold')).pack(side='left')
+        ttk.Label(header,text='トラック名',anchor='w',font=('',11,'bold')).pack(side='left',fill='x',expand=True,padx=8)
+        ttk.Label(header,text='入力済小節',width=12,anchor='center',font=('',11,'bold')).pack(side='left')
+        ttk.Label(header,text='',width=8).pack(side='left')
+        for i in range(start,end):
+            row=ttk.Frame(body)
+            row.pack(fill='x',pady=5)
+            ttk.Label(row,text=f'Ex {i+1:02d}',width=10,anchor='center').pack(side='left')
+            v=tk.StringVar(value=self.tracks[i].get('name') or f'JBR_{i+1:02d}_')
+            ent=ttk.Entry(row,textvariable=v)
+            ent.pack(side='left',fill='x',expand=True,padx=8,ipady=4)
+            def save_name(event=None,idx=i,var=v):
+                self.tracks[idx]['name']=var.get()
+                self.update_track_selector()
+            ent.bind('<FocusOut>',save_name)
+            ent.bind('<Return>',save_name)
+            ttk.Label(row,text=str(self.track_input_bar_count(i)),width=12,anchor='center').pack(side='left')
+            ttk.Button(row,text='削除',width=7,command=lambda idx=i:self.delete_track_from_config(idx)).pack(side='left')
+        self._track_config_page_label.config(text=f'{self._track_config_page_no+1} / {total}')
+        self._track_config_prev.state(['!disabled'] if self._track_config_page_no>0 else ['disabled'])
+        self._track_config_next.state(['!disabled'] if self._track_config_page_no<total-1 else ['disabled'])
 
-        header=ttk.Frame(outer)
-        header.pack(fill='x')
-        ttk.Label(header,text='Ex',width=8,anchor='center',font=('',11,'bold')).grid(row=0,column=0,padx=4,pady=5)
-        ttk.Label(header,text='トラック名',width=30,anchor='w',font=('',11,'bold')).grid(row=0,column=1,padx=4,pady=5)
-        ttk.Label(header,text='入力済小節数',width=12,anchor='center',font=('',11,'bold')).grid(row=0,column=2,padx=4,pady=5)
-        ttk.Label(header,text='',width=8).grid(row=0,column=3,padx=4,pady=5)
+    def change_track_config_page(self,delta):
+        self._track_config_page_no+=delta
+        self.refresh_track_config()
 
-        rows=ttk.Frame(outer)
-        rows.pack(fill='both',expand=True)
+    def add_track_from_config(self):
+        self.add_track()
+        self._track_config_page_no=(len(self.tracks)-1)//8
+        self.refresh_track_config()
 
-        nav=ttk.Frame(outer)
-        nav.pack(fill='x',pady=(8,0))
-        page_var=tk.StringVar()
-        undo_btn=None
+    def delete_track_from_config(self,idx):
+        if len(self.tracks)<=1:
+            messagebox.showwarning('削除','最後の1トラックは削除できません。',parent=self.root)
+            return
+        label=self.tracks[idx].get('name') or f'JBR_{idx+1:02d}_'
+        if not messagebox.askokcancel('削除確認',f'Ex {idx+1:02d}「{label}」を削除します。',parent=self.root):
+            return
+        self._last_deleted_track=(idx,self.tracks[idx])
+        del self.tracks[idx]
+        if self.track_index>=len(self.tracks):self.track_index=len(self.tracks)-1
+        self.update_track_selector()
+        self._track_config_page_no=min(self._track_config_page_no,max(0,(len(self.tracks)-1)//8))
+        self.refresh_track_config()
 
-        def save_visible_names():
-            for i,v in list(name_vars.items()):
-                if 0<=i<len(self.tracks):
-                    no=int(self.tracks[i].get('no',i+1))
-                    self.tracks[i]['name']=v.get().strip() or f'JBR_{no:02d}_'
-            if 0<=self.track_index<len(self.tracks):
-                self.load_track_settings()
-
-        def renumber_tracks():
-            for i,t in enumerate(self.tracks):
-                t['no']=i+1
-                if not (t.get('name') or '').strip():
-                    t['name']=f'JBR_{i+1:02d}_'
-
-        def rebuild():
-            nonlocal undo_btn
-            for child in rows.winfo_children():
-                child.destroy()
-            name_vars.clear()
-            max_page=max(0,(len(self.tracks)-1)//page_size)
-            state['page']=max(0,min(state['page'],max_page))
-            first=state['page']*page_size
-            last=min(first+page_size,len(self.tracks))
-            for r,i in enumerate(range(first,last)):
-                t=self.tracks[i]
-                ttk.Label(rows,text=f"Ex {i+1:02d}",width=8,anchor='center').grid(row=r,column=0,padx=4,pady=6)
-                v=tk.StringVar(value=t.get('name') or f"JBR_{i+1:02d}_")
-                name_vars[i]=v
-                e=ttk.Entry(rows,textvariable=v,width=30)
-                e.grid(row=r,column=1,padx=4,pady=6,sticky='ew')
-                ttk.Label(rows,text=str(self.track_input_bar_count(t)),width=12,anchor='center').grid(row=r,column=2,padx=4,pady=6)
-                ttk.Button(rows,text='削除',width=7,command=lambda idx=i:delete_track(idx)).grid(row=r,column=3,padx=4,pady=6)
-            rows.columnconfigure(1,weight=1)
-            page_var.set(f'{state["page"]+1} / {max_page+1}')
-            if undo_btn is not None:
-                undo_btn.configure(state='normal' if state['undo'] is not None else 'disabled')
-
-        def prev_page():
-            save_visible_names()
-            if state['page']>0:
-                state['page']-=1
-                rebuild()
-
-        def next_page():
-            save_visible_names()
-            if (state['page']+1)*page_size<len(self.tracks):
-                state['page']+=1
-                rebuild()
-
-        def add_from_config():
-            save_visible_names()
-            self.add_track()
-            state['page']=(len(self.tracks)-1)//page_size
-            rebuild()
-
-        def delete_track(idx):
-            save_visible_names()
-            if len(self.tracks)<=1:
-                messagebox.showwarning('削除できません','Trackは最低1つ必要です。',parent=win)
-                return
-            t=self.tracks[idx]
-            label=t.get('name') or f'Track {idx+1:02d}'
-            if not messagebox.askokcancel('Track削除',f'Ex {idx+1:02d}「{label}」を削除します。',parent=win):
-                return
-            state['undo']=(idx,t,self.track_index)
-            del self.tracks[idx]
-            renumber_tracks()
-            if self.track_index==idx:
-                self.track_index=min(idx,len(self.tracks)-1)
-            elif self.track_index>idx:
-                self.track_index-=1
-            self.load_track_settings()
-            rebuild()
-
-        def undo_delete():
-            if state['undo'] is None:
-                return
-            idx,t,old_current=state['undo']
-            idx=max(0,min(idx,len(self.tracks)))
-            self.tracks.insert(idx,t)
-            renumber_tracks()
-            self.track_index=max(0,min(old_current,len(self.tracks)-1))
-            state['undo']=None
-            self.load_track_settings()
-            state['page']=idx//page_size
-            rebuild()
-
-        ttk.Button(nav,text='◀',width=5,command=prev_page).pack(side='left',padx=4)
-        ttk.Label(nav,textvariable=page_var,width=9,anchor='center').pack(side='left')
-        ttk.Button(nav,text='▶',width=5,command=next_page).pack(side='left',padx=4)
-        ttk.Button(nav,text='+ トラック追加',command=add_from_config).pack(side='left',padx=(14,4))
-        undo_btn=ttk.Button(nav,text='元に戻す',command=undo_delete)
-        undo_btn.pack(side='left',padx=4)
-        ttk.Button(nav,text='閉じる',command=lambda:(save_visible_names(),win.destroy())).pack(side='right',padx=4)
-        rebuild()
-        win.protocol('WM_DELETE_WINDOW',lambda:(save_visible_names(),win.destroy()))
-        win.focus_set()
+    def undo_delete_from_config(self):
+        item=getattr(self,'_last_deleted_track',None)
+        if not item:return
+        idx,track=item
+        idx=max(0,min(idx,len(self.tracks)))
+        self.tracks.insert(idx,track)
+        self._last_deleted_track=None
+        self.update_track_selector()
+        self._track_config_page_no=idx//8
+        self.refresh_track_config()
 
     def refresh_track_box(self):
         if not hasattr(self,'track_box'):
