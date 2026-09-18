@@ -1,0 +1,670 @@
+{
+  "format": "bass-midi-gui-multitrack",
+  "format_version": 3,
+  "app": "Bass MIDI GUI PC",
+  "version": "24",
+  "project_name": "bass_project",
+  "visible_bars": 8,
+  "tracks": [
+    {
+      "no": 1,
+      "name": "Track 01",
+      "bpm": 120,
+      "resolution": "4分音符",
+      "auto_low": "G2",
+      "auto_high": "F#3",
+      "bars": [
+        {
+          "key": "C",
+          "split": false,
+          "chord": "C",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "C3",
+            "",
+            "G2",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "C",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "C3",
+            "",
+            "G2",
+            ""
+          ]
+        },
+        {
+          "key": "F",
+          "split": false,
+          "chord": "F",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "F3",
+            "",
+            "C3",
+            ""
+          ]
+        },
+        {
+          "key": "F",
+          "split": false,
+          "chord": "F",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "F3",
+            "",
+            "C3",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        }
+      ]
+    },
+    {
+      "no": 2,
+      "name": "Track 02",
+      "bpm": 120,
+      "resolution": "8分音符",
+      "auto_low": "G2",
+      "auto_high": "F#3",
+      "bars": [
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        },
+        {
+          "key": "C",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        }
+      ]
+    }
+  ]
+}
