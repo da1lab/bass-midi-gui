@@ -298,9 +298,9 @@ class App:
         ttk.Button(top,text='適用',command=self.batch_chord_apply).pack(side='left',padx=2)
         nav=ttk.Frame(self.root)
         nav.pack(fill='x',padx=8,pady=(0,6))
-        self.prev_button=ttk.Button(nav,text='← 前の8小節',command=lambda:self.move_page(-1))
+        self.prev_button=ttk.Button(nav,text='← 前の小節',command=lambda:self.move_page(-1))
         self.prev_button.pack(side='left',padx=3)
-        self.next_button=ttk.Button(nav,text='次の8小節 →',command=lambda:self.move_page(1))
+        self.next_button=ttk.Button(nav,text='次の小節 →',command=lambda:self.move_page(1))
         self.next_button.pack(side='left',padx=3)
         self.page_label=ttk.Label(nav,text='')
         self.page_label.pack(side='left',padx=12)
@@ -415,28 +415,24 @@ class App:
         # gridだけに依存せず、縦並びで確実に全操作を表示する。
         body=ttk.Frame(page)
         body.pack(fill='both',expand=True)
+        body.columnconfigure(0,weight=1)
+        body.columnconfigure(1,weight=1)
 
-        temp=ttk.LabelFrame(body,text='一時保存',padding=14)
-        temp.pack(fill='x',pady=(0,10))
-        ttk.Button(temp,text='一時保存',command=self.save_temp_work).pack(side='left',fill='x',expand=True,padx=(0,5),ipady=6)
-        ttk.Button(temp,text='一時保存読込',command=self.load_temp_work).pack(side='left',fill='x',expand=True,padx=(5,0),ipady=6)
+        load_col=ttk.LabelFrame(body,text='読み込み・再生',padding=16)
+        load_col.grid(row=0,column=0,padx=(0,10),pady=4,sticky='nsew')
+        ttk.Button(load_col,text='一時保存読込',command=self.load_temp_work).pack(fill='x',pady=6,ipady=6)
+        ttk.Button(load_col,text='プロジェクト読込',command=self.load_project).pack(fill='x',pady=6,ipady=6)
+        ttk.Button(load_col,text='MIDI読込',command=self.load_midi).pack(fill='x',pady=6,ipady=6)
+        ttk.Button(load_col,text='MIDI再生',command=self.play_midi).pack(fill='x',pady=6,ipady=6)
+        ttk.Button(load_col,text='停止',command=self.stop_midi).pack(fill='x',pady=6,ipady=6)
+        ttk.Button(load_col,text='CSV読込',command=self.load_csv).pack(fill='x',pady=6,ipady=6)
 
-        project=ttk.LabelFrame(body,text='プロジェクト',padding=14)
-        project.pack(fill='x',pady=10)
-        ttk.Button(project,text='プロジェクト保存',command=self.save_project).pack(side='left',fill='x',expand=True,padx=(0,5),ipady=6)
-        ttk.Button(project,text='プロジェクト読込',command=self.load_project).pack(side='left',fill='x',expand=True,padx=(5,0),ipady=6)
-
-        midi=ttk.LabelFrame(body,text='MIDI',padding=14)
-        midi.pack(fill='x',pady=10)
-        ttk.Button(midi,text='MIDI出力',command=self.open_midi_export).pack(side='left',fill='x',expand=True,padx=(0,4),ipady=6)
-        ttk.Button(midi,text='MIDI読込',command=self.load_midi).pack(side='left',fill='x',expand=True,padx=4,ipady=6)
-        ttk.Button(midi,text='MIDI再生',command=self.play_midi).pack(side='left',fill='x',expand=True,padx=4,ipady=6)
-        ttk.Button(midi,text='停止',command=self.stop_midi).pack(side='left',fill='x',expand=True,padx=(4,0),ipady=6)
-
-        csvbox=ttk.LabelFrame(body,text='CSV',padding=14)
-        csvbox.pack(fill='x',pady=10)
-        ttk.Button(csvbox,text='CSV保存',command=self.save_csv).pack(side='left',fill='x',expand=True,padx=(0,5),ipady=6)
-        ttk.Button(csvbox,text='CSV読込',command=self.load_csv).pack(side='left',fill='x',expand=True,padx=(5,0),ipady=6)
+        save_col=ttk.LabelFrame(body,text='保存・出力',padding=16)
+        save_col.grid(row=0,column=1,padx=(10,0),pady=4,sticky='nsew')
+        ttk.Button(save_col,text='一時保存',command=self.save_temp_work).pack(fill='x',pady=6,ipady=6)
+        ttk.Button(save_col,text='プロジェクト保存',command=self.save_project).pack(fill='x',pady=6,ipady=6)
+        ttk.Button(save_col,text='MIDI出力',command=self.open_midi_export).pack(fill='x',pady=6,ipady=6)
+        ttk.Button(save_col,text='CSV保存',command=self.save_csv).pack(fill='x',pady=6,ipady=6)
 
     def close_file_menu(self):
         """ファイルページを閉じ、非表示にしていた編集画面を復元する。"""
@@ -491,6 +487,16 @@ class App:
         undo.pack(side='right',padx=8)
         if not getattr(self,'_last_deleted_track',None):undo.state(['disabled'])
 
+        nav=ttk.Frame(page)
+        nav.pack(fill='x',pady=(0,12))
+        prev=ttk.Button(nav,text='◀ 前へ',command=lambda:self.change_track_config_page(-1))
+        prev.pack(side='left')
+        ttk.Label(nav,text=f'{self._track_config_page_no+1} / {total}',anchor='center',font=('',11)).pack(side='left',fill='x',expand=True)
+        nxt=ttk.Button(nav,text='次へ ▶',command=lambda:self.change_track_config_page(1))
+        nxt.pack(side='right')
+        if self._track_config_page_no<=0:prev.state(['disabled'])
+        if self._track_config_page_no>=total-1:nxt.state(['disabled'])
+
         table=ttk.Frame(page)
         table.pack(fill='both',expand=True)
         table.columnconfigure(1,weight=1)
@@ -516,15 +522,7 @@ class App:
             ttk.Label(table,text=str(self.track_input_bar_count(self.tracks[i])),anchor='center',font=('',11)).grid(row=r,column=2,padx=12,pady=7,sticky='ew')
             ttk.Button(table,text='削除',command=lambda idx=i:self.delete_track_from_config(idx)).grid(row=r,column=3,padx=(8,4),pady=7,sticky='ew')
 
-        nav=ttk.Frame(page)
-        nav.pack(fill='x',pady=(16,0))
-        prev=ttk.Button(nav,text='◀ 前へ',command=lambda:self.change_track_config_page(-1))
-        prev.pack(side='left')
-        ttk.Label(nav,text=f'{self._track_config_page_no+1} / {total}',anchor='center',font=('',11)).pack(side='left',fill='x',expand=True)
-        nxt=ttk.Button(nav,text='次へ ▶',command=lambda:self.change_track_config_page(1))
-        nxt.pack(side='right')
-        if self._track_config_page_no<=0:prev.state(['disabled'])
-        if self._track_config_page_no>=total-1:nxt.state(['disabled'])
+
 
     def save_track_name_from_config(self,idx,var):
         if 0<=idx<len(self.tracks):
