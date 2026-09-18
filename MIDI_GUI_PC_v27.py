@@ -358,31 +358,64 @@ class App:
         ttk.Button(buttons,text='編集中Exのみ',command=current_ex).pack(side='left',padx=3)
 
     def open_file_menu(self):
-        """ファイル関係の操作を1つの別画面に集約する。"""
-        win=tk.Toplevel(self.root)
-        win.title('ファイル')
-        win.transient(self.root)
-        win.resizable(False,False)
-        body=ttk.Frame(win,padding=14)
+        """同じメインウインドウ内でファイル操作ページへ移動する。"""
+        self.commit_current_view()
+        self.sync_track_settings()
+        self._file_menu_active=True
+        for w in self.root.winfo_children():
+            w.destroy()
+        self.widgets=[]
+        self.committers=[]
+        self.render_file_menu_page()
+
+    def render_file_menu_page(self):
+        """ファイル関係の操作をメインウインドウ全体に表示する。"""
+        for w in self.root.winfo_children():
+            w.destroy()
+        page=ttk.Frame(self.root,padding=(24,18))
+        page.pack(fill='both',expand=True)
+        top=ttk.Frame(page)
+        top.pack(fill='x',pady=(0,20))
+        ttk.Button(top,text='← 編集画面に戻る',command=self.close_file_menu).pack(side='left')
+        ttk.Label(top,text='ファイル',font=('',18,'bold')).pack(side='left',padx=18)
+
+        body=ttk.Frame(page)
         body.pack(fill='both',expand=True)
-        ttk.Label(body,text='作業データ',font=('',12,'bold')).grid(row=0,column=0,columnspan=2,sticky='w',pady=(0,6))
-        ttk.Button(body,text='一時保存',width=18,command=self.save_temp_work).grid(row=1,column=0,padx=4,pady=4,sticky='ew')
-        ttk.Button(body,text='一時保存読込',width=18,command=self.load_temp_work).grid(row=1,column=1,padx=4,pady=4,sticky='ew')
-        ttk.Button(body,text='プロジェクト保存',width=18,command=self.save_project).grid(row=2,column=0,padx=4,pady=4,sticky='ew')
-        ttk.Button(body,text='プロジェクト読込',width=18,command=self.load_project).grid(row=2,column=1,padx=4,pady=4,sticky='ew')
-        ttk.Separator(body,orient='horizontal').grid(row=3,column=0,columnspan=2,sticky='ew',pady=10)
-        ttk.Label(body,text='MIDI',font=('',12,'bold')).grid(row=4,column=0,columnspan=2,sticky='w',pady=(0,6))
-        ttk.Button(body,text='MIDI出力',width=18,command=self.open_midi_export).grid(row=5,column=0,padx=4,pady=4,sticky='ew')
-        ttk.Button(body,text='MIDI読込',width=18,command=self.load_midi).grid(row=5,column=1,padx=4,pady=4,sticky='ew')
-        ttk.Button(body,text='MIDI再生',width=18,command=self.play_midi).grid(row=6,column=0,padx=4,pady=4,sticky='ew')
-        ttk.Button(body,text='停止',width=18,command=self.stop_midi).grid(row=6,column=1,padx=4,pady=4,sticky='ew')
-        ttk.Separator(body,orient='horizontal').grid(row=7,column=0,columnspan=2,sticky='ew',pady=10)
-        ttk.Label(body,text='CSV',font=('',12,'bold')).grid(row=8,column=0,columnspan=2,sticky='w',pady=(0,6))
-        ttk.Button(body,text='CSV保存',width=18,command=self.save_csv).grid(row=9,column=0,padx=4,pady=4,sticky='ew')
-        ttk.Button(body,text='CSV読込',width=18,command=self.load_csv).grid(row=9,column=1,padx=4,pady=4,sticky='ew')
-        ttk.Button(body,text='閉じる',command=win.destroy).grid(row=10,column=0,columnspan=2,pady=(12,0))
-        win.grab_set()
-        win.focus_set()
+        body.columnconfigure(0,weight=1)
+        body.columnconfigure(1,weight=1)
+
+        temp=ttk.LabelFrame(body,text='一時保存',padding=16)
+        temp.grid(row=0,column=0,padx=(0,10),pady=8,sticky='nsew')
+        ttk.Button(temp,text='一時保存',command=self.temp_save).pack(fill='x',pady=5,ipady=5)
+        ttk.Button(temp,text='一時保存読込',command=self.temp_load).pack(fill='x',pady=5,ipady=5)
+
+        project=ttk.LabelFrame(body,text='プロジェクト',padding=16)
+        project.grid(row=0,column=1,padx=(10,0),pady=8,sticky='nsew')
+        ttk.Button(project,text='ファイル保存',command=self.save_project).pack(fill='x',pady=5,ipady=5)
+        ttk.Button(project,text='ファイル読込',command=self.load_project).pack(fill='x',pady=5,ipady=5)
+
+        midi=ttk.LabelFrame(body,text='MIDI',padding=16)
+        midi.grid(row=1,column=0,padx=(0,10),pady=8,sticky='nsew')
+        ttk.Button(midi,text='MIDI出力',command=self.open_midi_export).pack(fill='x',pady=5,ipady=5)
+        ttk.Button(midi,text='MIDI読込',command=self.load_midi).pack(fill='x',pady=5,ipady=5)
+        ttk.Button(midi,text='MIDI再生',command=self.play_midi).pack(fill='x',pady=5,ipady=5)
+        ttk.Button(midi,text='停止',command=self.stop_midi).pack(fill='x',pady=5,ipady=5)
+
+        csvbox=ttk.LabelFrame(body,text='CSV',padding=16)
+        csvbox.grid(row=1,column=1,padx=(10,0),pady=8,sticky='nsew')
+        ttk.Button(csvbox,text='CSV保存',command=self.save_csv).pack(fill='x',pady=5,ipady=5)
+        ttk.Button(csvbox,text='CSV読込',command=self.load_csv).pack(fill='x',pady=5,ipady=5)
+
+    def close_file_menu(self):
+        """ファイルページを閉じ、通常の編集画面へ戻る。"""
+        self._file_menu_active=False
+        for w in self.root.winfo_children():
+            w.destroy()
+        self.widgets=[]
+        self.committers=[]
+        self.load_track_settings()
+        self.build_top()
+        self.render()
 
     def track_input_bar_count(self,t):
         """入力がある小節数を数える。途中の空白小節は数えない。"""
@@ -395,103 +428,105 @@ class App:
         return count
 
     def open_track_config(self):
-        """メインウインドウ内でトラック構成画面へ移動する。"""
+        """メイン編集画面から、同じウインドウのトラック構成ページへ完全に切り替える。"""
         self.commit_current_view()
         self.sync_track_settings()
-        # メイン画面の直下ウィジェットを一時的に隠す
-        main_children=list(self.root.winfo_children())
-        layouts=[]
-        for w in main_children:
-            manager=w.winfo_manager()
-            info={}
-            try:
-                if manager=='pack':info=w.pack_info()
-                elif manager=='grid':info=w.grid_info()
-            except:pass
-            layouts.append((w,manager,info))
-            if manager=='pack':w.pack_forget()
-            elif manager=='grid':w.grid_remove()
-        page=ttk.Frame(self.root,padding=12)
-        page.pack(fill='both',expand=True)
-        self._track_config_page=page
-        self._track_config_hidden=layouts
         self._track_config_page_no=0
+        self._track_config_active=True
+        # 別ウインドウは作らない。メインウインドウ内の表示を完全に入れ替える。
+        for w in self.root.winfo_children():
+            w.destroy()
+        self.widgets=[]
+        self.committers=[]
+        self.render_track_config_page()
 
+    def render_track_config_page(self):
+        """トラック構成ページ全体を、メインウインドウいっぱいに描画する。"""
+        for w in self.root.winfo_children():
+            w.destroy()
+        page=ttk.Frame(self.root,padding=(24,18))
+        page.pack(fill='both',expand=True)
         top=ttk.Frame(page)
-        top.pack(fill='x',pady=(0,10))
-        ttk.Button(top,text='← 戻る',command=self.close_track_config).pack(side='left')
-        ttk.Label(top,text='トラック構成',font=('',16,'bold')).pack(side='left',padx=16)
-        ttk.Button(top,text='+ トラック追加',command=lambda:self.add_track_from_config()).pack(side='right')
-        ttk.Button(top,text='元に戻す',command=lambda:self.undo_delete_from_config()).pack(side='right',padx=6)
+        top.pack(fill='x',pady=(0,18))
+        ttk.Button(top,text='← 編集画面に戻る',command=self.close_track_config).pack(side='left')
+        ttk.Label(top,text='トラック構成',font=('',18,'bold')).pack(side='left',padx=18)
+        ttk.Button(top,text='+ トラック追加',command=self.add_track_from_config).pack(side='right')
+        undo=ttk.Button(top,text='元に戻す',command=self.undo_delete_from_config)
+        undo.pack(side='right',padx=8)
+        if not getattr(self,'_last_deleted_track',None):undo.state(['disabled'])
 
-        self._track_config_body=ttk.Frame(page)
-        self._track_config_body.pack(fill='both',expand=True)
-        nav=ttk.Frame(page)
-        nav.pack(fill='x',pady=(10,0))
-        self._track_config_prev=ttk.Button(nav,text='◀',command=lambda:self.change_track_config_page(-1))
-        self._track_config_prev.pack(side='left')
-        self._track_config_page_label=ttk.Label(nav,text='',anchor='center')
-        self._track_config_page_label.pack(side='left',fill='x',expand=True)
-        self._track_config_next=ttk.Button(nav,text='▶',command=lambda:self.change_track_config_page(1))
-        self._track_config_next.pack(side='right')
-        self.refresh_track_config()
+        table=ttk.Frame(page)
+        table.pack(fill='both',expand=True)
+        table.columnconfigure(1,weight=1)
+        ttk.Label(table,text='Ex',anchor='center',font=('',12,'bold')).grid(row=0,column=0,padx=(4,12),pady=(0,10),sticky='ew')
+        ttk.Label(table,text='トラック名',anchor='w',font=('',12,'bold')).grid(row=0,column=1,padx=8,pady=(0,10),sticky='ew')
+        ttk.Label(table,text='入力済小節',anchor='center',font=('',12,'bold')).grid(row=0,column=2,padx=12,pady=(0,10),sticky='ew')
+        ttk.Label(table,text='',width=10).grid(row=0,column=3)
 
-    def close_track_config(self):
-        """トラック構成画面を閉じ、元の編集画面へ戻る。"""
-        page=getattr(self,'_track_config_page',None)
-        if page and page.winfo_exists():page.destroy()
-        # 元画面は既存レイアウトを壊さないよう、geometry manager情報を使って復元
-        for w,manager,info in getattr(self,'_track_config_hidden',[]):
-            if not w.winfo_exists():continue
-            try:
-                if manager=='pack':w.pack(**info)
-                elif manager=='grid':w.grid()
-            except:pass
-        self._track_config_page=None
-        self.refresh()
-
-    def refresh_track_config(self):
-        body=self._track_config_body
-        for w in body.winfo_children():w.destroy()
         page_size=8
         total=max(1,(len(self.tracks)+page_size-1)//page_size)
         self._track_config_page_no=max(0,min(self._track_config_page_no,total-1))
         start=self._track_config_page_no*page_size
         end=min(start+page_size,len(self.tracks))
-        header=ttk.Frame(body)
-        header.pack(fill='x',pady=(0,5))
-        ttk.Label(header,text='Ex',width=10,anchor='center',font=('',11,'bold')).pack(side='left')
-        ttk.Label(header,text='トラック名',anchor='w',font=('',11,'bold')).pack(side='left',fill='x',expand=True,padx=8)
-        ttk.Label(header,text='入力済小節',width=12,anchor='center',font=('',11,'bold')).pack(side='left')
-        ttk.Label(header,text='',width=8).pack(side='left')
-        for i in range(start,end):
-            row=ttk.Frame(body)
-            row.pack(fill='x',pady=5)
-            ttk.Label(row,text=f'Ex {i+1:02d}',width=10,anchor='center').pack(side='left')
+        self._track_name_vars=[]
+        for r,i in enumerate(range(start,end),start=1):
+            ttk.Label(table,text=f'Ex {i+1:02d}',anchor='center',font=('',11)).grid(row=r,column=0,padx=(4,12),pady=7,sticky='ew')
             v=tk.StringVar(value=self.tracks[i].get('name') or f'JBR_{i+1:02d}_')
-            ent=ttk.Entry(row,textvariable=v)
-            ent.pack(side='left',fill='x',expand=True,padx=8,ipady=4)
-            def save_name(event=None,idx=i,var=v):
+            self._track_name_vars.append((i,v))
+            ent=ttk.Entry(table,textvariable=v,font=('',12))
+            ent.grid(row=r,column=1,padx=8,pady=7,ipady=6,sticky='ew')
+            ent.bind('<FocusOut>',lambda e,idx=i,var=v:self.save_track_name_from_config(idx,var))
+            ent.bind('<Return>',lambda e,idx=i,var=v:self.save_track_name_from_config(idx,var))
+            ttk.Label(table,text=str(self.track_input_bar_count(self.tracks[i])),anchor='center',font=('',11)).grid(row=r,column=2,padx=12,pady=7,sticky='ew')
+            ttk.Button(table,text='削除',command=lambda idx=i:self.delete_track_from_config(idx)).grid(row=r,column=3,padx=(8,4),pady=7,sticky='ew')
+
+        nav=ttk.Frame(page)
+        nav.pack(fill='x',pady=(16,0))
+        prev=ttk.Button(nav,text='◀ 前へ',command=lambda:self.change_track_config_page(-1))
+        prev.pack(side='left')
+        ttk.Label(nav,text=f'{self._track_config_page_no+1} / {total}',anchor='center',font=('',11)).pack(side='left',fill='x',expand=True)
+        nxt=ttk.Button(nav,text='次へ ▶',command=lambda:self.change_track_config_page(1))
+        nxt.pack(side='right')
+        if self._track_config_page_no<=0:prev.state(['disabled'])
+        if self._track_config_page_no>=total-1:nxt.state(['disabled'])
+
+    def save_track_name_from_config(self,idx,var):
+        if 0<=idx<len(self.tracks):
+            self.tracks[idx]['name']=var.get()
+
+    def save_visible_track_names(self):
+        for idx,var in getattr(self,'_track_name_vars',[]):
+            if 0<=idx<len(self.tracks):
                 self.tracks[idx]['name']=var.get()
-                self.update_track_selector()
-            ent.bind('<FocusOut>',save_name)
-            ent.bind('<Return>',save_name)
-            ttk.Label(row,text=str(self.track_input_bar_count(i)),width=12,anchor='center').pack(side='left')
-            ttk.Button(row,text='削除',width=7,command=lambda idx=i:self.delete_track_from_config(idx)).pack(side='left')
-        self._track_config_page_label.config(text=f'{self._track_config_page_no+1} / {total}')
-        self._track_config_prev.state(['!disabled'] if self._track_config_page_no>0 else ['disabled'])
-        self._track_config_next.state(['!disabled'] if self._track_config_page_no<total-1 else ['disabled'])
+
+    def close_track_config(self):
+        """トラック構成ページを破棄し、通常の編集画面を作り直す。"""
+        self.save_visible_track_names()
+        self._track_config_active=False
+        for w in self.root.winfo_children():
+            w.destroy()
+        self.widgets=[]
+        self.committers=[]
+        self.load_track_settings()
+        self.build_top()
+        self.render()
 
     def change_track_config_page(self,delta):
+        self.save_visible_track_names()
         self._track_config_page_no+=delta
-        self.refresh_track_config()
+        self.render_track_config_page()
 
     def add_track_from_config(self):
-        self.add_track()
+        self.save_visible_track_names()
+        no=max([int(t.get('no',0)) for t in self.tracks]+[0])+1
+        bars=[Bar() for _ in range(DEFAULT_BARS)]
+        self.tracks.append({'no':no,'name':f'JBR_{no:02d}_','bpm':DEFAULT_BPM,'resolution':'4分音符','auto_low':'G2','auto_high':'F#3','bars':bars})
+        self.current_track=len(self.tracks)-1
         self._track_config_page_no=(len(self.tracks)-1)//8
-        self.refresh_track_config()
+        self.render_track_config_page()
 
     def delete_track_from_config(self,idx):
+        self.save_visible_track_names()
         if len(self.tracks)<=1:
             messagebox.showwarning('削除','最後の1トラックは削除できません。',parent=self.root)
             return
@@ -500,21 +535,20 @@ class App:
             return
         self._last_deleted_track=(idx,self.tracks[idx])
         del self.tracks[idx]
-        if self.track_index>=len(self.tracks):self.track_index=len(self.tracks)-1
-        self.update_track_selector()
+        if self.current_track>=len(self.tracks):self.current_track=len(self.tracks)-1
         self._track_config_page_no=min(self._track_config_page_no,max(0,(len(self.tracks)-1)//8))
-        self.refresh_track_config()
+        self.render_track_config_page()
 
     def undo_delete_from_config(self):
         item=getattr(self,'_last_deleted_track',None)
         if not item:return
+        self.save_visible_track_names()
         idx,track=item
         idx=max(0,min(idx,len(self.tracks)))
         self.tracks.insert(idx,track)
         self._last_deleted_track=None
-        self.update_track_selector()
         self._track_config_page_no=idx//8
-        self.refresh_track_config()
+        self.render_track_config_page()
 
     def refresh_track_box(self):
         if not hasattr(self,'track_box'):
