@@ -389,17 +389,22 @@ class App:
         self.commit_current_view()
         self.sync_track_settings()
         self._file_menu_active=True
-        for w in self.root.winfo_children():
-            w.destroy()
-        self.widgets=[]
-        self.committers=[]
+        # 押されたボタン自身をcallback中にdestroyしない。
+        # 編集画面は一時的に非表示にし、ファイルページをその上に表示する。
+        self._file_hidden=[]
+        for w in list(self.root.winfo_children()):
+            manager=w.winfo_manager()
+            if manager=='pack':
+                self._file_hidden.append((w,'pack'))
+                w.pack_forget()
+            elif manager=='grid':
+                self._file_hidden.append((w,'grid'))
+                w.grid_remove()
         self.render_file_menu_page()
-
     def render_file_menu_page(self):
         """ファイル操作をメインウインドウ内の1ページとして表示する。"""
-        for w in self.root.winfo_children():
-            w.destroy()
         page=ttk.Frame(self.root,padding=(24,18))
+        self._file_menu_page=page
         page.pack(fill='both',expand=True)
 
         top=ttk.Frame(page)
@@ -434,9 +439,19 @@ class App:
         ttk.Button(csvbox,text='CSV読込',command=self.load_csv).pack(side='left',fill='x',expand=True,padx=(5,0),ipady=6)
 
     def close_file_menu(self):
-        """ファイルページから通常編集画面へ戻る。"""
+        """ファイルページを閉じ、非表示にしていた編集画面を復元する。"""
         self._file_menu_active=False
-        self.rebuild_editor_screen()
+        page=getattr(self,'_file_menu_page',None)
+        if page is not None:
+            try:page.destroy()
+            except:pass
+        for w,manager in getattr(self,'_file_hidden',[]):
+            try:
+                if not w.winfo_exists():continue
+                if manager=='pack':w.pack()
+                elif manager=='grid':w.grid()
+            except:pass
+        self._file_hidden=[]
 
     def track_input_bar_count(self,t):
         """入力がある小節数を数える。途中の空白小節は数えない。"""
