@@ -435,19 +435,10 @@ class App:
         ttk.Button(save_col,text='CSV保存',command=self.save_csv).pack(fill='x',pady=6,ipady=6)
 
     def close_file_menu(self):
-        """ファイルページを閉じ、非表示にしていた編集画面を復元する。"""
+        """ファイルページから通常編集画面へ戻る。"""
         self._file_menu_active=False
-        page=getattr(self,'_file_menu_page',None)
-        if page is not None:
-            try:page.destroy()
-            except:pass
-        for w,manager in getattr(self,'_file_hidden',[]):
-            try:
-                if not w.winfo_exists():continue
-                if manager=='pack':w.pack()
-                elif manager=='grid':w.grid()
-            except:pass
         self._file_hidden=[]
+        self.rebuild_editor_screen()
 
     def track_input_bar_count(self,t):
         """入力がある小節数を数える。途中の空白小節は数えない。"""
@@ -473,19 +464,27 @@ class App:
         self.render_track_config_page()
 
     def render_track_config_page(self):
-        """トラック構成ページ全体を、メインウインドウいっぱいに描画する。"""
-        for w in self.root.winfo_children():
-            w.destroy()
+        """トラック構成ページ全体をメインウインドウに描画する。"""
+        for w in list(self.root.winfo_children()):
+            try:w.destroy()
+            except:pass
         page=ttk.Frame(self.root,padding=(24,18))
         page.pack(fill='both',expand=True)
+
         top=ttk.Frame(page)
-        top.pack(fill='x',pady=(0,18))
+        top.pack(fill='x',pady=(0,12))
         ttk.Button(top,text='← 編集画面に戻る',command=self.close_track_config).pack(side='left')
         ttk.Label(top,text='トラック構成',font=('',18,'bold')).pack(side='left',padx=18)
         ttk.Button(top,text='+ トラック追加',command=self.add_track_from_config).pack(side='right')
         undo=ttk.Button(top,text='元に戻す',command=self.undo_delete_from_config)
         undo.pack(side='right',padx=8)
         if not getattr(self,'_last_deleted_track',None):undo.state(['disabled'])
+
+        page_size=8
+        total=max(1,(len(self.tracks)+page_size-1)//page_size)
+        self._track_config_page_no=max(0,min(self._track_config_page_no,total-1))
+        start=self._track_config_page_no*page_size
+        end=min(start+page_size,len(self.tracks))
 
         nav=ttk.Frame(page)
         nav.pack(fill='x',pady=(0,12))
@@ -504,12 +503,6 @@ class App:
         ttk.Label(table,text='トラック名',anchor='w',font=('',12,'bold')).grid(row=0,column=1,padx=8,pady=(0,10),sticky='ew')
         ttk.Label(table,text='入力済小節',anchor='center',font=('',12,'bold')).grid(row=0,column=2,padx=12,pady=(0,10),sticky='ew')
         ttk.Label(table,text='',width=10).grid(row=0,column=3)
-
-        page_size=8
-        total=max(1,(len(self.tracks)+page_size-1)//page_size)
-        self._track_config_page_no=max(0,min(self._track_config_page_no,total-1))
-        start=self._track_config_page_no*page_size
-        end=min(start+page_size,len(self.tracks))
         self._track_name_vars=[]
         for r,i in enumerate(range(start,end),start=1):
             ttk.Label(table,text=f'Ex {i+1:02d}',anchor='center',font=('',11)).grid(row=r,column=0,padx=(4,12),pady=7,sticky='ew')
@@ -521,8 +514,6 @@ class App:
             ent.bind('<Return>',lambda e,idx=i,var=v:self.save_track_name_from_config(idx,var))
             ttk.Label(table,text=str(self.track_input_bar_count(self.tracks[i])),anchor='center',font=('',11)).grid(row=r,column=2,padx=12,pady=7,sticky='ew')
             ttk.Button(table,text='削除',command=lambda idx=i:self.delete_track_from_config(idx)).grid(row=r,column=3,padx=(8,4),pady=7,sticky='ew')
-
-
 
     def save_track_name_from_config(self,idx,var):
         if 0<=idx<len(self.tracks):
