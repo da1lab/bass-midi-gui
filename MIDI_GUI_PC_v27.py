@@ -413,8 +413,8 @@ class App:
             w.destroy()
         self.widgets=[]
         self.committers=[]
-        self.load_track_settings()
         self.build_top()
+        self.load_track_settings()
         self.render()
 
     def track_input_bar_count(self,t):
@@ -507,8 +507,8 @@ class App:
             w.destroy()
         self.widgets=[]
         self.committers=[]
-        self.load_track_settings()
         self.build_top()
+        self.load_track_settings()
         self.render()
 
     def change_track_config_page(self,delta):
@@ -573,7 +573,7 @@ class App:
         t=self.tracks[self.current_track]
         self.data=t['bars']
         self.bars_var.set(len(self.data))
-        self.track_name_var.set(t.get('name',f"Track {self.current_track+1:02d}"))
+        self.track_name_var.set(t.get('name',f'JBR_{self.current_track+1:02d}_'))
         self.bpm_var.set(int(t.get('bpm',DEFAULT_BPM)))
         self.res_var.set(t.get('resolution','4分音符'))
         self.auto_low_var.set(t.get('auto_low','G2'))
