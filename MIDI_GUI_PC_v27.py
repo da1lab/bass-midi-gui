@@ -1,5 +1,4 @@
 import csv
-import copy
 import json
 import base64
 import zlib
@@ -389,16 +388,12 @@ class App:
         self.commit_current_view()
         self.sync_track_settings()
         self._file_menu_active=True
-        # 押されたボタン自身をcallback中にdestroyしない。
-        # 編集画面は一時的に非表示にし、ファイルページをその上に表示する。
-        self._file_hidden=[]
+        # callback中は編集画面を破棄せず、一時的に非表示にする。
         for w in list(self.root.winfo_children()):
             manager=w.winfo_manager()
             if manager=='pack':
-                self._file_hidden.append((w,'pack'))
                 w.pack_forget()
             elif manager=='grid':
-                self._file_hidden.append((w,'grid'))
                 w.grid_remove()
         self.render_file_menu_page()
     def render_file_menu_page(self):
@@ -437,8 +432,7 @@ class App:
     def close_file_menu(self):
         """ファイルページから通常編集画面へ戻る。"""
         self._file_menu_active=False
-        self._file_hidden=[]
-        self.rebuild_editor_screen()
+        self.root.after_idle(self.rebuild_editor_screen)
 
     def track_input_bar_count(self,t):
         """入力がある小節数を数える。途中の空白小節は数えない。"""
@@ -451,14 +445,14 @@ class App:
         return count
 
     def open_track_config(self):
-        """メイン編集画面から、同じウインドウのトラック構成ページへ完全に切り替える。"""
+        """同じメインウインドウのトラック構成ページへ移動する。"""
         self.commit_current_view()
         self.sync_track_settings()
         self._track_config_page_no=0
         self._track_config_active=True
-        # 別ウインドウは作らない。メインウインドウ内の表示を完全に入れ替える。
-        for w in self.root.winfo_children():
-            w.destroy()
+        self.root.after_idle(self._show_track_config_page)
+
+    def _show_track_config_page(self):
         self.widgets=[]
         self.committers=[]
         self.render_track_config_page()
@@ -528,12 +522,12 @@ class App:
         """トラック構成ページから通常編集画面へ戻る。"""
         self.save_visible_track_names()
         self._track_config_active=False
-        self.rebuild_editor_screen()
+        self.root.after_idle(self.rebuild_editor_screen)
 
     def change_track_config_page(self,delta):
         self.save_visible_track_names()
         self._track_config_page_no+=delta
-        self.render_track_config_page()
+        self.root.after_idle(self.render_track_config_page)
 
     def add_track_from_config(self):
         self.save_visible_track_names()
@@ -542,7 +536,7 @@ class App:
         self.tracks.append({'no':no,'name':f'JBR_{no:02d}_','bpm':DEFAULT_BPM,'resolution':'4分音符','auto_low':'G2','auto_high':'F#3','bars':bars})
         self.current_track=len(self.tracks)-1
         self._track_config_page_no=(len(self.tracks)-1)//8
-        self.render_track_config_page()
+        self.root.after_idle(self.render_track_config_page)
 
     def delete_track_from_config(self,idx):
         self.save_visible_track_names()
