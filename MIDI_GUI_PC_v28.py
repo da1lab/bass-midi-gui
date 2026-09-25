@@ -103,6 +103,10 @@ def normalize_note(s, low='G2', high='F#3'):
     n=auto_midi(s,low,high)
     return pc+str(n//12-1) if n is not None else s
 
+def midi_to_note_name(midi,accidental='sharp'):
+    names=FLAT_NAMES if accidental=='flat' else SHARP_NAMES
+    return f"{names[midi%12]}{midi//12-1}"
+
 def parse_key(key):
     key=(key or '').strip()
     is_minor=key.endswith('m')
@@ -291,22 +295,30 @@ class App:
         visible_spin.pack(side='left',padx=2)
         visible_spin.bind('<Return>',lambda e:self.change_visible_bars())
         visible_spin.bind('<FocusOut>',lambda e:self.change_visible_bars())
-        ttk.Label(top,text='自動音域').pack(side='left',padx=(12,3))
-        ttk.Entry(top,textvariable=self.auto_low_var,width=5).pack(side='left',padx=2)
-        ttk.Label(top,text='～').pack(side='left')
-        ttk.Entry(top,textvariable=self.auto_high_var,width=5).pack(side='left',padx=2)
-        ttk.Label(top,text='デフォルトKey').pack(side='left',padx=(12,3))
-        default_key_box=ttk.Combobox(top,textvariable=self.default_key_var,values=KEYS,state='readonly',width=5)
+        top2=ttk.Frame(self.root)
+        top2.pack(fill='x',padx=8,pady=(0,6))
+        ttk.Label(top2,text='自動音域').pack(side='left',padx=(0,3))
+        auto_low_entry=ttk.Entry(top2,textvariable=self.auto_low_var,width=5)
+        auto_low_entry.pack(side='left',padx=2)
+        ttk.Label(top2,text='～').pack(side='left')
+        auto_high_entry=ttk.Entry(top2,textvariable=self.auto_high_var,width=5)
+        auto_high_entry.pack(side='left',padx=2)
+        auto_low_entry.bind('<FocusOut>',lambda e:self.adjust_auto_range('low'))
+        auto_high_entry.bind('<FocusOut>',lambda e:self.adjust_auto_range('high'))
+        auto_low_entry.bind('<Return>',lambda e:self.adjust_auto_range('low'))
+        auto_high_entry.bind('<Return>',lambda e:self.adjust_auto_range('high'))
+        ttk.Label(top2,text='デフォルトKey').pack(side='left',padx=(12,3))
+        default_key_box=ttk.Combobox(top2,textvariable=self.default_key_var,values=KEYS,state='readonly',width=5)
         default_key_box.pack(side='left',padx=2)
-        ttk.Button(top,text='全体へ適用',command=self.default_key_apply).pack(side='left',padx=2)
-        ttk.Label(top,text='表示8小節Key一括').pack(side='left',padx=(12,3))
-        key_box=ttk.Combobox(top,textvariable=self.batch_key_var,values=KEYS,state='readonly',width=5)
+        ttk.Button(top2,text='全体へ適用',command=self.default_key_apply).pack(side='left',padx=2)
+        ttk.Label(top2,text='表示8小節Key一括').pack(side='left',padx=(12,3))
+        key_box=ttk.Combobox(top2,textvariable=self.batch_key_var,values=KEYS,state='readonly',width=5)
         key_box.pack(side='left',padx=2)
-        ttk.Button(top,text='適用',command=self.batch_key_apply).pack(side='left',padx=2)
-        ttk.Label(top,text='表示4小節コード一括').pack(side='left',padx=(12,3))
-        chord_box=ttk.Combobox(top,textvariable=self.batch_chord_var,values=CHORDS,width=12,state='readonly')
+        ttk.Button(top2,text='適用',command=self.batch_key_apply).pack(side='left',padx=2)
+        ttk.Label(top2,text='表示4小節コード一括').pack(side='left',padx=(12,3))
+        chord_box=ttk.Combobox(top2,textvariable=self.batch_chord_var,values=CHORDS,width=12,state='readonly')
         chord_box.pack(side='left',padx=2)
-        ttk.Button(top,text='適用',command=self.batch_chord_apply).pack(side='left',padx=2)
+        ttk.Button(top2,text='適用',command=self.batch_chord_apply).pack(side='left',padx=2)
         nav=ttk.Frame(self.root)
         nav.pack(fill='x',padx=8,pady=(0,6))
         self.prev_button=ttk.Button(nav,text='← 前の小節',command=lambda:self.move_page(-1))
@@ -668,12 +680,43 @@ class App:
             self.page=(bar_no-1)//self.get_visible_bars()
             self.render()
 
+    def adjust_auto_range(self,changed):
+        low_text=self.auto_low_var.get().strip()
+        high_text=self.auto_high_var.get().strip()
+        low_pc,low_oct=parse_note(low_text)
+        high_pc,high_oct=parse_note(high_text)
+        if low_pc is None or low_oct is None or high_pc is None or high_oct is None:
+            return
+        low_midi=12*(low_oct+1)+NOTE_TO_PC[low_pc]
+        high_midi=12*(high_oct+1)+NOTE_TO_PC[high_pc]
+        if changed=='low':
+            if high_midi<low_midi:
+                high_midi=low_midi
+            elif high_midi-low_midi>12:
+                high_midi=low_midi+12
+            else:
+                return
+            self.auto_high_var.set(midi_to_note_name(high_midi,'flat' if 'b' in high_text else 'sharp'))
+        else:
+            if low_midi>high_midi:
+                low_midi=high_midi
+            elif high_midi-low_midi>12:
+                low_midi=high_midi-12
+            else:
+                return
+            self.auto_low_var.set(midi_to_note_name(low_midi,'flat' if 'b' in low_text else 'sharp'))
+        self.sync_track_settings()
+
     def default_key_apply(self):
         key=self.default_key_var.get()
         if not key:
             return
-        for b in self.data:
-            b.key=key
+        self.commit_current_view()
+        self.sync_track_settings()
+        for t in self.tracks:
+            for b in t.get('bars',[]):
+                b.key=key
+        self.data=self.tracks[self.current_track]['bars']
         self.batch_key_var.set(key)
         self.render()
 
