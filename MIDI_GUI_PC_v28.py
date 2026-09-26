@@ -711,13 +711,18 @@ class App:
         key=self.default_key_var.get()
         if not key:
             return
+        # まず現在表示中の入力内容をBarへ保存する。
         self.commit_current_view()
         self.sync_track_settings()
+        # 全Ex・全小節へKeyを適用する。
         for t in self.tracks:
             for b in t.get('bars',[]):
                 b.key=key
         self.data=self.tracks[self.current_track]['bars']
         self.batch_key_var.set(key)
+        # render() 冒頭のcommit_current_view()が旧GUI値を再保存しないよう、
+        # 適用前のcommitterを破棄してから再描画する。
+        self.committers=[]
         self.render()
 
     def batch_key_apply(self):
