@@ -1238,16 +1238,13 @@ class App:
         canvas.pack(fill='x',expand=True); hbar.pack(fill='x')
         bass_host=ttk.Frame(canvas); win=canvas.create_window((0,0),window=bass_host,anchor='nw')
         for bc in range(4):
-            bass_host.columnconfigure(bc,weight=1,uniform='bassbeats')
+            bass_host.columnconfigure(bc,weight=1)
         def update_bass_scrollregion(event=None):
             canvas.configure(scrollregion=canvas.bbox('all'))
         def resize_bass_window(event):
-            total_segments=len(getattr(b,'bass_grid',[]) or [])
+            # 全体音数では表示を変えない。必要幅だけ横スクロールで扱う。
             req=bass_host.winfo_reqwidth()
-            if total_segments<=16:
-                canvas.itemconfigure(win,width=event.width)
-            else:
-                canvas.itemconfigure(win,width=max(event.width,req))
+            canvas.itemconfigure(win,width=max(event.width,req))
             update_bass_scrollregion()
         bass_host.bind('<Configure>',update_bass_scrollregion)
         canvas.bind('<Configure>',resize_bass_window)
@@ -1280,7 +1277,7 @@ class App:
             # 常に1行表示。Bass側もChordと同じ4拍グリッドに合わせる。
             # 各拍の中をベース分解能ぶんだけ等分する。
             for beat_col in range(4):
-                bass_host.columnconfigure(beat_col,weight=1,uniform='bassbeats')
+                bass_host.columnconfigure(beat_col,weight=1)
 
             for slot in range(slots):
                 display_row=0
@@ -1317,16 +1314,17 @@ class App:
                 ).pack(side='left',padx=(2,0))
 
                 segments=[(idx,x) for idx,x in enumerate(b.bass_grid) if int(x.get('base_slot',-1))==slot]
-                total_segments=max(1,len(b.bass_grid))
-                # 細分化が進むほどセルを少し圧縮。極端に潰れない範囲で段階調整。
-                if total_segments<=8:
-                    note_width=2; label_font=8; degree_widths=(2,2); btn_scale=0.90
-                elif total_segments<=16:
-                    # 16音までは小節欄内に収めることを優先。
-                    note_width=1; label_font=7; degree_widths=(1,1); btn_scale=0.72
+                # この親スロット内だけを局所的に圧縮する。
+                # 他の拍・他の親スロットの表示サイズには一切影響させない。
+                local_segments=max(1,len(segments))
+                if local_segments<=2:
+                    note_width=2; label_font=8; degree_widths=(2,2); btn_scale=1.00
+                elif local_segments<=4:
+                    note_width=1; label_font=8; degree_widths=(1,1); btn_scale=0.90
+                elif local_segments<=8:
+                    note_width=1; label_font=7; degree_widths=(1,1); btn_scale=0.78
                 else:
-                    # 17音以上は横スクロール前提でさらに圧縮。
-                    note_width=1; label_font=7; degree_widths=(1,1); btn_scale=0.66
+                    note_width=1; label_font=7; degree_widths=(1,1); btn_scale=0.68
 
                 for local,(idx,item) in enumerate(segments):
                     cell=tk.Frame(group,bg='white',bd=0,highlightthickness=0)
@@ -1370,7 +1368,7 @@ class App:
                     def split23_button(parent,command2,command3,w=34,h=26,font_size=14):
                         # 2/3を1枚のCanvas内に統合。中央線のみで区切り、隙間は物理的に0。
                         cv=tk.Canvas(parent,width=w,height=h,highlightthickness=0,borderwidth=0)
-                        cv.pack(side='left',padx=0,pady=0)
+                        cv.pack(side='left',padx=0,pady=1)
                         cv.create_rectangle(0,0,w-1,h-1)
                         mid=w/2
                         cv.create_line(mid,0,mid,h)
@@ -1390,10 +1388,11 @@ class App:
                         cv.bind('<Button-1>',lambda e:command())
                         return cv
 
-                    # 細分化が進んでも横幅を食い過ぎないよう、2/3全体で30～34px程度に抑える。
-                    b23w=max(24,round(30*btn_scale))
-                    b23h=max(22,round(24*btn_scale))
-                    b23f=max(11,round(13*btn_scale))
+                    # 2|3は1枚Canvasのまま、クリック感を優先して最低サイズを確保。
+                    # 細分化した親スロットだけbtn_scaleで少し縮小する。
+                    b23w=max(30,round(36*btn_scale))
+                    b23h=max(28,round(32*btn_scale))
+                    b23f=max(12,round(14*btn_scale))
                     split23_button(
                         btns,
                         lambda i=idx:self.split_bass_cell(b,i,2,rebuild_bass_grid),
