@@ -1179,18 +1179,18 @@ class App:
         def chord_unit(parent,col,label,var,oct_var,onbass_var,span=1):
             unit=ttk.Frame(parent); unit.grid(row=0,column=col,columnspan=span,sticky='nw',padx=0)
             if label:
-                ttk.Label(unit,text=label,font=('',9),anchor='w').pack(fill='x',pady=(0,0))
+                ttk.Label(unit,text=label,font=('',13),anchor='w').pack(fill='x',pady=(0,0))
             else:
-                ttk.Label(unit,text='',font=('',9)).pack(fill='x',pady=(0,0))
-            dg=ttk.Label(unit,text='',foreground='blue',anchor='w',font=('',13,'bold'))
-            dg.pack(fill='x',pady=(0,0))
-            line=ttk.Frame(unit); line.pack()
+                ttk.Label(unit,text='',font=('',13)).pack(fill='x',pady=(0,0))
+            line=ttk.Frame(unit); line.pack(anchor='w')
             box=ttk.Combobox(line,textvariable=var,values=CHORDS,width=4,height=18,takefocus=True,style='Bar.TCombobox',state='readonly')
             box.pack(side='left',padx=(0,1),ipadx=3,ipady=2)
             ttk.Spinbox(line,from_=0,to=8,textvariable=oct_var,width=2,takefocus=False).pack(side='left',padx=(0,1),ipady=2)
             ttk.Label(line,text='/',font=('',11,'bold')).pack(side='left')
             onbox=ttk.Entry(line,textvariable=onbass_var,width=2,justify='center',takefocus=True,style='Bar.TEntry')
             onbox.pack(side='left',ipadx=3,ipady=2)
+            dg=ttk.Label(unit,text='',foreground='blue',anchor='w',font=('',13,'bold'))
+            dg.pack(fill='x',pady=(0,0))
             degree_labels.append((var,dg))
             self.input_focus_widgets.extend([box,onbox])
 
@@ -1218,6 +1218,8 @@ class App:
         hbar=ttk.Scrollbar(bass_outer,orient='horizontal',command=canvas.xview); canvas.configure(xscrollcommand=hbar.set)
         canvas.pack(fill='x',expand=True); hbar.pack(fill='x')
         bass_host=ttk.Frame(canvas); win=canvas.create_window((0,0),window=bass_host,anchor='nw')
+        for bc in range(4):
+            bass_host.columnconfigure(bc,weight=1,uniform='bassbeats')
         def update_bass_scrollregion(event=None):
             canvas.configure(scrollregion=canvas.bbox('all'))
         def resize_bass_window(event):
@@ -1249,16 +1251,34 @@ class App:
             sub=RESOLUTIONS.get(effective_res,1)
             slots=sub*BEATS_PER_BAR
 
-            # 常に1行表示。細分化で横幅を超えた場合は横スクロールのみで対応。
+            # 常に1行表示。Bass側もChordと同じ4拍グリッドに合わせる。
+            # 各拍の中をベース分解能ぶんだけ等分する。
+            for beat_col in range(4):
+                bass_host.columnconfigure(beat_col,weight=1,uniform='bassbeats')
+
             for slot in range(slots):
                 display_row=0
-                display_col=slot
+                beat_col=slot//sub
+                sub_col=slot%sub
 
                 base_path=base_path_for_slot(slot,effective_res)
                 base_label='.'.join(str(x) for x in base_path)
                 base_item={'path':base_path,'divisions':[]}
-                group=tk.Frame(bass_host,bg='#fff3b0',bd=1,relief='solid')
-                group.grid(row=display_row,column=display_col,padx=0,pady=0,sticky='nw')
+                # beat_frame aligns to chord beat columns; subslots sit inside each beat.
+                beat_frames=getattr(bass_host,'_beat_frames',None)
+                if beat_frames is None:
+                    beat_frames=[]
+                    for bc in range(4):
+                        bf=tk.Frame(bass_host,bg='#fff3b0')
+                        bf.grid(row=0,column=bc,sticky='nsew')
+                        for sc in range(sub):
+                            bf.columnconfigure(sc,weight=1,uniform=f'basssub{bc}')
+                        beat_frames.append(bf)
+                    bass_host._beat_frames=beat_frames
+                beat_frame=beat_frames[beat_col]
+
+                group=tk.Frame(beat_frame,bg='#fff3b0',bd=1,relief='solid')
+                group.grid(row=0,column=sub_col,padx=0,pady=0,sticky='nw')
                 head=tk.Frame(group,bg='#fff3b0')
                 head.grid(row=0,column=0,columnspan=99,sticky='w')
                 tk.Label(head,text=base_label,font=('',9),bg='#fff3b0').pack(side='left')
