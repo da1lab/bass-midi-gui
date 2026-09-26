@@ -1242,8 +1242,12 @@ class App:
         def update_bass_scrollregion(event=None):
             canvas.configure(scrollregion=canvas.bbox('all'))
         def resize_bass_window(event):
+            total_segments=len(getattr(b,'bass_grid',[]) or [])
             req=bass_host.winfo_reqwidth()
-            canvas.itemconfigure(win,width=max(event.width,req))
+            if total_segments<=16:
+                canvas.itemconfigure(win,width=event.width)
+            else:
+                canvas.itemconfigure(win,width=max(event.width,req))
             update_bass_scrollregion()
         bass_host.bind('<Configure>',update_bass_scrollregion)
         canvas.bind('<Configure>',resize_bass_window)
@@ -1292,7 +1296,7 @@ class App:
                     beat_frames=[]
                     for bc in range(4):
                         bf=tk.Frame(bass_host,bg='white')
-                        bf.grid(row=0,column=bc,sticky='nsew')
+                        bf.grid(row=0,column=bc,sticky='nsew',padx=0,pady=0)
                         for sc in range(sub):
                             bf.columnconfigure(sc,weight=1,uniform=f'basssub{bc}')
                         beat_frames.append(bf)
@@ -1300,7 +1304,7 @@ class App:
                 beat_frame=beat_frames[beat_col]
 
                 group=tk.Frame(beat_frame,bg='white',bd=1,relief='solid')
-                group.grid(row=0,column=sub_col,padx=0,pady=0,sticky='nw')
+                group.grid(row=0,column=sub_col,padx=0,pady=0,sticky='nsew')
                 head=tk.Frame(group,bg='white')
                 head.grid(row=0,column=0,columnspan=99,sticky='w')
                 tk.Label(head,text=base_label,font=('',9),bg='white').pack(side='left')
@@ -1316,13 +1320,13 @@ class App:
                 total_segments=max(1,len(b.bass_grid))
                 # 細分化が進むほどセルを少し圧縮。極端に潰れない範囲で段階調整。
                 if total_segments<=8:
-                    note_width=2; label_font=9; degree_widths=(2,3); btn_scale=1.0
-                elif total_segments<=12:
-                    note_width=2; label_font=8; degree_widths=(2,2); btn_scale=0.92
+                    note_width=2; label_font=8; degree_widths=(2,2); btn_scale=0.90
                 elif total_segments<=16:
-                    note_width=1; label_font=8; degree_widths=(1,2); btn_scale=0.85
+                    # 16音までは小節欄内に収めることを優先。
+                    note_width=1; label_font=7; degree_widths=(1,1); btn_scale=0.72
                 else:
-                    note_width=1; label_font=7; degree_widths=(1,1); btn_scale=0.78
+                    # 17音以上は横スクロール前提でさらに圧縮。
+                    note_width=1; label_font=7; degree_widths=(1,1); btn_scale=0.66
 
                 for local,(idx,item) in enumerate(segments):
                     cell=tk.Frame(group,bg='white',bd=0,highlightthickness=0)
@@ -1340,11 +1344,11 @@ class App:
                             font=('',label_font,'bold'),
                             fg='#d94b72',
                             bg='white'
-                        ).pack(side='left',padx=(2,0))
+                        ).pack(side='left',padx=(1,0))
 
                     vr=tk.StringVar(value=item.get('note',''))
                     ent=ttk.Entry(cell,textvariable=vr,width=note_width,justify='center',style='Bar.TEntry')
-                    ent.pack(pady=0,ipadx=3,ipady=2)
+                    ent.pack(pady=0,ipadx=1,ipady=1)
                     ent.bind('<Return>',lambda e,v=vr:self.normalize_entry(v))
                     ent.bind('<FocusOut>',lambda e,v=vr:self.normalize_entry(v))
 
@@ -1363,9 +1367,22 @@ class App:
 
                     btns=tk.Frame(cell,bg='white'); btns.pack(pady=0)
 
+                    def split23_button(parent,command2,command3,w=34,h=26,font_size=14):
+                        # 2/3を1枚のCanvas内に統合。中央線のみで区切り、隙間は物理的に0。
+                        cv=tk.Canvas(parent,width=w,height=h,highlightthickness=0,borderwidth=0)
+                        cv.pack(side='left',padx=0,pady=0)
+                        cv.create_rectangle(0,0,w-1,h-1)
+                        mid=w/2
+                        cv.create_line(mid,0,mid,h)
+                        cv.create_text(mid/2,h/2,text='2',font=('',font_size,'bold'))
+                        cv.create_text(mid+mid/2,h/2,text='3',font=('',font_size,'bold'))
+                        def on_click(e):
+                            if e.x<mid:command2()
+                            else:command3()
+                        cv.bind('<Button-1>',on_click)
+                        return cv
+
                     def tiny_button(parent,text,command,w=12,h=16,font_size=11):
-                        # 見た目そのものをクリック判定範囲にする。
-                        # 外側holderを使わないため、隣接ボタン間に余計な隙間が生じない。
                         cv=tk.Canvas(parent,width=w,height=h,highlightthickness=0,borderwidth=0)
                         cv.pack(side='left',padx=0,pady=0)
                         cv.create_rectangle(0,0,w-1,h-1)
@@ -1373,16 +1390,20 @@ class App:
                         cv.bind('<Button-1>',lambda e:command())
                         return cv
 
-                    # 2/3は隙間ゼロ。細分化時も押しやすさ優先で最低サイズを確保。
-                    bw=max(22,round(24*btn_scale))
-                    bh=max(26,round(28*btn_scale))
-                    bf=max(13,round(15*btn_scale))
-                    tiny_button(btns,'2',lambda i=idx:self.split_bass_cell(b,i,2,rebuild_bass_grid),w=bw,h=bh,font_size=bf)
-                    tiny_button(btns,'3',lambda i=idx:self.split_bass_cell(b,i,3,rebuild_bass_grid),w=bw,h=bh,font_size=bf)
+                    # 細分化が進んでも横幅を食い過ぎないよう、2/3全体で30～34px程度に抑える。
+                    b23w=max(24,round(30*btn_scale))
+                    b23h=max(22,round(24*btn_scale))
+                    b23f=max(11,round(13*btn_scale))
+                    split23_button(
+                        btns,
+                        lambda i=idx:self.split_bass_cell(b,i,2,rebuild_bass_grid),
+                        lambda i=idx:self.split_bass_cell(b,i,3,rebuild_bass_grid),
+                        w=b23w,h=b23h,font_size=b23f
+                    )
 
                     can_merge=bool(item.get('divisions',[]))
                     if can_merge:
-                        tiny_button(btns,'-',lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid),w=12,h=18,font_size=11)
+                        tiny_button(btns,'-',lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid),w=10,h=18,font_size=11)
 
                     degrees=tk.Frame(cell,bg='white'); degrees.pack(pady=0)
                     dgk=tk.Label(degrees,text='',fg='green',bg='white',width=degree_widths[0],anchor='e',font=('',14,'bold'))
