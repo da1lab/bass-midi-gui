@@ -1246,6 +1246,9 @@ class App:
 
         def rebuild_bass_grid():
             for w in bass_host.winfo_children():w.destroy()
+            # 子ウィジェット破棄後に古いbeat_frame参照を再利用しない。
+            if hasattr(bass_host,'_beat_frames'):
+                delattr(bass_host,'_beat_frames')
             bass_vars.clear(); bass_key_labels.clear(); bass_chord_labels.clear()
             b.bass_grid=normalize_bass_grid(b.bass_grid,effective_res)
             sub=RESOLUTIONS.get(effective_res,1)
@@ -1269,7 +1272,7 @@ class App:
                 if beat_frames is None:
                     beat_frames=[]
                     for bc in range(4):
-                        bf=tk.Frame(bass_host,bg='#fff3b0')
+                        bf=tk.Frame(bass_host,bg='white')
                         bf.grid(row=0,column=bc,sticky='nsew')
                         for sc in range(sub):
                             bf.columnconfigure(sc,weight=1,uniform=f'basssub{bc}')
@@ -1277,36 +1280,36 @@ class App:
                     bass_host._beat_frames=beat_frames
                 beat_frame=beat_frames[beat_col]
 
-                group=tk.Frame(beat_frame,bg='#fff3b0',bd=1,relief='solid')
+                group=tk.Frame(beat_frame,bg='white',bd=1,relief='solid')
                 group.grid(row=0,column=sub_col,padx=0,pady=0,sticky='nw')
-                head=tk.Frame(group,bg='#fff3b0')
+                head=tk.Frame(group,bg='white')
                 head.grid(row=0,column=0,columnspan=99,sticky='w')
-                tk.Label(head,text=base_label,font=('',9),bg='#fff3b0').pack(side='left')
+                tk.Label(head,text=base_label,font=('',9),bg='white').pack(side='left')
                 tk.Label(
                     head,
                     text=bass_note_value_symbol(base_item,effective_res),
                     font=('',9,'bold'),
                     fg='#d94b72',
-                    bg='#fff3b0'
+                    bg='white'
                 ).pack(side='left',padx=(2,0))
 
                 segments=[(idx,x) for idx,x in enumerate(b.bass_grid) if int(x.get('base_slot',-1))==slot]
                 for local,(idx,item) in enumerate(segments):
-                    cell=tk.Frame(group,bg='#fff3b0',bd=0,highlightthickness=0)
+                    cell=tk.Frame(group,bg='white',bd=0,highlightthickness=0)
                     cell.grid(row=0,column=local,padx=0,pady=0,sticky='n')
 
                     # 分割後は 1.1.1 のすぐ右に音価をピンク寄りの赤で表示。
                     full_label=bass_path_label(item)
                     if full_label!=base_label:
-                        child_head=tk.Frame(cell,bg='#fff3b0')
+                        child_head=tk.Frame(cell,bg='white')
                         child_head.pack(pady=0)
-                        tk.Label(child_head,text=full_label,font=('',9),bg='#fff3b0').pack(side='left')
+                        tk.Label(child_head,text=full_label,font=('',9),bg='white').pack(side='left')
                         tk.Label(
                             child_head,
                             text=bass_note_value_symbol(item,effective_res),
                             font=('',9,'bold'),
                             fg='#d94b72',
-                            bg='#fff3b0'
+                            bg='white'
                         ).pack(side='left',padx=(2,0))
 
                     vr=tk.StringVar(value=item.get('note',''))
@@ -1317,7 +1320,7 @@ class App:
                     # セルの余白も音名入力欄のクリック判定として利用。
                     cell.bind('<Button-1>',lambda e,w=ent:w.focus_set())
 
-                    btns=tk.Frame(cell,bg='#fff3b0'); btns.pack(pady=0)
+                    btns=tk.Frame(cell,bg='white'); btns.pack(pady=0)
 
                     def tiny_button(parent,text,command,w=12,h=16,font_size=11,hit_pad=2):
                         holder=tk.Frame(parent,width=w+hit_pad*2,height=h+hit_pad*2)
@@ -1338,10 +1341,10 @@ class App:
                     if can_merge:
                         tiny_button(btns,'-',lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid),w=10,h=16,font_size=11,hit_pad=2)
 
-                    degrees=tk.Frame(cell,bg='#fff3b0'); degrees.pack(pady=0)
-                    dgk=tk.Label(degrees,text='',fg='green',bg='#fff3b0',width=2,anchor='e',font=('',14,'bold'))
+                    degrees=tk.Frame(cell,bg='white'); degrees.pack(pady=0)
+                    dgk=tk.Label(degrees,text='',fg='green',bg='white',width=2,anchor='e',font=('',14,'bold'))
                     dgk.pack(side='left',padx=(2,0),pady=0)
-                    dgc=tk.Label(degrees,text='',fg='purple',bg='#fff3b0',width=3,anchor='w',font=('',14,'bold'))
+                    dgc=tk.Label(degrees,text='',fg='purple',bg='white',width=3,anchor='w',font=('',14,'bold'))
                     dgc.pack(side='left',padx=(0,0),pady=0)
                     for target in (degrees,dgk,dgc):
                         target.bind('<Button-1>',lambda e,w=ent:w.focus_set())
