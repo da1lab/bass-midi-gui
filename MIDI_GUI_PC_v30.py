@@ -1094,13 +1094,15 @@ class App:
 
         def chord_unit(parent,col,label,var,oct_var,onbass_var):
             unit=ttk.Frame(parent); unit.grid(row=0,column=col,sticky='n',padx=1)
-            if label:ttk.Label(unit,text=label,font=('',9)).pack()
+            head=ttk.Frame(unit); head.pack()
+            if label:ttk.Label(head,text=label,font=('',9)).pack(side='left',padx=(0,2))
+            dg=ttk.Label(head,text='',foreground='blue',anchor='center',font=('',12,'bold'))
+            dg.pack(side='left')
             line=ttk.Frame(unit); line.pack()
             box=ttk.Combobox(line,textvariable=var,values=CHORDS,width=4,height=18,takefocus=True,style='Bar.TCombobox',state='readonly'); box.pack(side='left',padx=(0,1))
             ttk.Spinbox(line,from_=0,to=8,textvariable=oct_var,width=2,takefocus=False).pack(side='left',padx=(0,1))
             ttk.Label(line,text='/',font=('',11,'bold')).pack(side='left')
             onbox=ttk.Entry(line,textvariable=onbass_var,width=2,justify='center',takefocus=True,style='Bar.TEntry'); onbox.pack(side='left')
-            dg=ttk.Label(unit,text='',foreground='blue',anchor='center',font=('',12,'bold')); dg.pack()
             degree_labels.append((var,dg))
             self.input_focus_widgets.extend([box,onbox])
 
@@ -1151,12 +1153,31 @@ class App:
             b.bass_grid=normalize_bass_grid(b.bass_grid,effective_res)
             sub=RESOLUTIONS.get(effective_res,1)
             slots=sub*BEATS_PER_BAR
-            # 1-2拍を上段、3-4拍を下段。
-            # 各段は横スクロール可能なBass領域内で横方向に展開する。
+
+            # 表示切替:
+            # 通常は1～4拍を1行。
+            # 8分音符×8相当を超える細分化がある場合のみ
+            # 1-2拍 / 3-4拍 の2段表示へ切り替える。
+            # 各セグメントのlevelから8分音符換算の表示密度を見積もる。
+            equivalent_eighths=0
+            for item in b.bass_grid:
+                level=max(0,int(item.get('level',0)))
+                base_sub=RESOLUTIONS.get(effective_res,1)
+                # 4分基準level0=2個の8分相当、8分基準level0=1個相当。
+                seg_eighths=max(1,round((2/base_sub)/(2**level)))
+                equivalent_eighths+=seg_eighths
+            # セグメント数そのものも細分化量をよく表すため併用。
+            use_two_rows=(len(b.bass_grid)>8 or equivalent_eighths>8)
+
             slots_per_two_beats=sub*2
             for slot in range(slots):
-                display_row=0 if slot<slots_per_two_beats else 1
-                display_col=slot if display_row==0 else slot-slots_per_two_beats
+                if use_two_rows:
+                    display_row=0 if slot<slots_per_two_beats else 1
+                    display_col=slot if display_row==0 else slot-slots_per_two_beats
+                else:
+                    display_row=0
+                    display_col=slot
+
                 group=ttk.LabelFrame(
                     bass_host,
                     text=bass_grid_slot_label(slot,effective_res),
@@ -1174,22 +1195,42 @@ class App:
                     ent.bind('<FocusOut>',lambda e,v=vr:self.normalize_entry(v))
                     btns=ttk.Frame(cell)
                     btns.pack(pady=0)
-                    def tiny_button(parent,text,command,enabled=True):
-                        cv=tk.Canvas(parent,width=12,height=16,highlightthickness=0,borderwidth=0)
+
+                    def tiny_button(parent,text,command,enabled=True,is_plus=False):
+                        # '+'だけ二回り大きく、'-'は従来サイズ。
+                        if is_plus:
+                            w,h,font_size=18,20,16
+                            cx,cy=9,10
+                        else:
+                            w,h,font_size=12,16,12
+                            cx,cy=6,8
+                        cv=tk.Canvas(parent,width=w,height=h,highlightthickness=0,borderwidth=0)
                         cv.pack(side='left',padx=0,pady=0)
-                        cv.create_rectangle(0,0,11,15)
-                        cv.create_text(6,8,text=text,font=('',12,'bold'))
+                        cv.create_rectangle(0,0,w-1,h-1)
+                        cv.create_text(cx,cy,text=text,font=('',font_size,'bold'))
                         if enabled:
                             cv.bind('<Button-1>',lambda e:command())
                             cv.configure(cursor='hand2')
                         return cv
-                    tiny_button(btns,'+',lambda i=idx:self.split_bass_cell(b,i,rebuild_bass_grid),True)
+
+                    tiny_button(
+                        btns,'+',
+                        lambda i=idx:self.split_bass_cell(b,i,rebuild_bass_grid),
+                        True,True
+                    )
                     level=max(0,int(item.get('level',0)))
-                    tiny_button(btns,'-',lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid),level>0)
-                    dgk=ttk.Label(cell,text='',foreground='green',width=3,anchor='center',font=('',10,'bold'))
-                    dgk.pack(pady=0)
-                    dgc=ttk.Label(cell,text='',foreground='purple',width=4,anchor='center',font=('',10,'bold'))
-                    dgc.pack(pady=0)
+                    tiny_button(
+                        btns,'-',
+                        lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid),
+                        level>0,False
+                    )
+
+                    degrees=ttk.Frame(cell)
+                    degrees.pack(pady=0)
+                    dgk=ttk.Label(degrees,text='',foreground='green',width=3,anchor='center',font=('',14,'bold'))
+                    dgk.pack(side='left',pady=0)
+                    dgc=ttk.Label(degrees,text='',foreground='purple',width=4,anchor='center',font=('',14,'bold'))
+                    dgc.pack(side='left',pady=0)
                     bass_vars.append((idx,vr,slot))
                     bass_key_labels.append(dgk)
                     bass_chord_labels.append(dgc)
