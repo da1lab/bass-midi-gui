@@ -1395,14 +1395,14 @@ class App:
                     b23f=max(12,round(14*btn_scale))
                     split23_button(
                         btns,
-                        lambda i=idx:self.split_bass_cell(b,i,2,rebuild_bass_grid),
-                        lambda i=idx:self.split_bass_cell(b,i,3,rebuild_bass_grid),
+                        lambda i=idx:split_bass_preserve(i,2),
+                        lambda i=idx:split_bass_preserve(i,3),
                         w=b23w,h=b23h,font_size=b23f
                     )
 
                     can_merge=bool(item.get('divisions',[]))
                     if can_merge:
-                        tiny_button(btns,'-',lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid),w=10,h=18,font_size=11)
+                        tiny_button(btns,'-',lambda i=idx:merge_bass_preserve(i),w=10,h=18,font_size=11)
 
                     degrees=tk.Frame(cell,bg='white'); degrees.pack(pady=0)
                     dgk=tk.Label(degrees,text='',fg='green',bg='white',width=degree_widths[0],anchor='e',font=('',14,'bold'))
@@ -1455,6 +1455,14 @@ class App:
                 segs=[x for x in b.bass_grid if int(x.get('base_slot',-1))==slot]
                 b.bass.append(segs[0].get('note','') if segs else '')
         self.committers.append(apply_bar_controls)
+
+        def split_bass_preserve(idx,parts):
+            apply_bar_controls()
+            self.split_bass_cell(b,idx,parts,rebuild_bass_grid)
+
+        def merge_bass_preserve(idx):
+            apply_bar_controls()
+            self.merge_bass_cell(b,idx,rebuild_bass_grid)
 
         def split_changed():
             apply_bar_controls()
