@@ -234,53 +234,105 @@ def chord_notes_with_slash(chord,octv,on_bass=''):
     return sorted(set(notes if bass is None else [bass]+notes))
 
 def make_bass_grid_from_legacy(values,res_name):
-    slots=RESOLUTIONS.get(res_name,1)*BEATS_PER_BAR
+    """ベース分解能を親階層として初期セルを作る。"""
+    sub=RESOLUTIONS.get(res_name,1)
+    slots=sub*BEATS_PER_BAR
     vals=list(values or [])
     while len(vals)<slots:vals.append('')
     vals=vals[:slots]
-    return [{'note':str(v or ''),'slot':i,'level':0} for i,v in enumerate(vals)]
+    grid=[]
+    for slot,v in enumerate(vals):
+        beat=slot//sub+1
+        subpos=slot%sub+1
+        base_path=[beat] if sub==1 else [beat,subpos]
+        grid.append({'note':str(v or ''),'base_slot':slot,'path':base_path,'divisions':[]})
+    return grid
 
-def normalize_bass_grid(grid,res_name):
-    """旧v30 units形式も、親スロット(slot)+分割階層(level)形式へ変換する。"""
-    slots=RESOLUTIONS.get(res_name,1)*BEATS_PER_BAR
-    if not isinstance(grid,list) or not grid:
-        return make_bass_grid_from_legacy([],res_name)
-    if all(isinstance(x,dict) and 'slot' in x and 'level' in x for x in grid):
-        out=[]
-        for x in grid:
-            slot=max(0,min(slots-1,int(x.get('slot',0))))
-            level=max(0,min(6,int(x.get('level',0))))
-            out.append({'note':str(x.get('note','')),'slot':slot,'level':level})
-        return out
-    # 旧 units 形式: base cell=2 units として、2 unitsごとに1親スロットへ割り当てる。
-    out=[]; slot=0; used=0
-    for x in grid:
-        if not isinstance(x,dict) or slot>=slots:continue
-        units=max(1,int(x.get('units',2)))
-        if units>=2:level=0
-        else:level=1
-        out.append({'note':str(x.get('note','')),'slot':slot,'level':level})
-        used+=units
-        while used>=2:
-            used-=2
-            slot+=1
-            if slot>=slots:break
-    existing={x['slot'] for x in out}
-    for i in range(slots):
-        if i not in existing:out.append({'note':'','slot':i,'level':0})
-    out.sort(key=lambda x:x['slot'])
-    return out
-
-def bass_grid_slot_label(slot,res_name):
+def base_path_for_slot(slot,res_name):
     sub=RESOLUTIONS.get(res_name,1)
     beat=slot//sub+1
     subpos=slot%sub+1
-    return f'{beat}拍' if sub==1 else f'{beat}.{subpos}'
+    return [beat] if sub==1 else [beat,subpos]
 
-def bass_grid_duration_ticks(level,res_name):
+def bass_path_label(item):
+    return '.'.join(str(x) for x in item.get('path',[]))
+
+def bass_segment_fraction(item):
+    """親スロットに対する長さ比。divisions=[2,3]なら1/6。"""
+    den=1
+    for d in item.get('divisions',[]):
+        try:
+            d=int(d)
+        except Exception:
+            d=2
+        den*=max(2,d)
+    return 1/den
+
+def bass_segment_ticks(item,res_name):
     sub=RESOLUTIONS.get(res_name,1)
     base_ticks=TICKS_PER_BEAT/sub
-    return max(1,round(base_ticks/(2**max(0,int(level)))))
+    return max(1,round(base_ticks*bass_segment_fraction(item)))
+
+def normalize_bass_grid(grid,res_name):
+    """旧v30形式も階層パス形式へ変換する。"""
+    sub=RESOLUTIONS.get(res_name,1)
+    slots=sub*BEATS_PER_BAR
+    if not isinstance(grid,list) or not grid:
+        return make_bass_grid_from_legacy([],res_name)
+
+    # New hierarchical format.
+    if all(isinstance(x,dict) and 'path' in x and 'base_slot' in x for x in grid):
+        out=[]
+        for x in grid:
+            slot=max(0,min(slots-1,int(x.get('base_slot',0))))
+            path=x.get('path',base_path_for_slot(slot,res_name))
+            divisions=x.get('divisions',[])
+            if not isinstance(path,list):path=base_path_for_slot(slot,res_name)
+            if not isinstance(divisions,list):divisions=[]
+            out.append({
+                'note':str(x.get('note','')),
+                'base_slot':slot,
+                'path':[int(v) for v in path],
+                'divisions':[max(2,int(v)) for v in divisions]
+            })
+        out.sort(key=lambda x:(x['base_slot'],x['path']))
+        return out
+
+    # Previous slot/level format.
+    if all(isinstance(x,dict) and 'slot' in x for x in grid):
+        grouped={}
+        for x in grid:
+            slot=max(0,min(slots-1,int(x.get('slot',0))))
+            grouped.setdefault(slot,[]).append(x)
+        out=[]
+        for slot in range(slots):
+            items=grouped.get(slot,[])
+            if not items:
+                out.append({'note':'','base_slot':slot,'path':base_path_for_slot(slot,res_name),'divisions':[]})
+                continue
+            # Infer binary level by number/order in the parent.
+            n=len(items)
+            level=0
+            while 2**level<n:level+=1
+            for i,x in enumerate(items):
+                suffix=[]
+                temp=i
+                for _ in range(level):
+                    suffix.insert(0,temp%2+1)
+                    temp//=2
+                out.append({
+                    'note':str(x.get('note','')),
+                    'base_slot':slot,
+                    'path':base_path_for_slot(slot,res_name)+suffix,
+                    'divisions':[2]*level
+                })
+        return out
+
+    # Old units format fallback.
+    return make_bass_grid_from_legacy(
+        [str(x.get('note','')) for x in grid if isinstance(x,dict)],
+        res_name
+    )
 
 class App:
     def __init__(self,root):
@@ -288,8 +340,8 @@ class App:
         self.root.bind('<Command-t>',self.shortcut_add_track)
         self.root.bind('<Control-t>',self.shortcut_add_track)
         self.root.title('Bass MIDI GUI PC v30')
-        self.root.geometry('1500x900')
-        self.root.minsize(1100,650)
+        self.root.geometry('1800x900')
+        self.root.minsize(1250,650)
         self.data=[Bar() for _ in range(DEFAULT_BARS)]
         self.tracks=[{'no':1,'name':'JBR_01_','bpm':DEFAULT_BPM,'resolution':'4分音符','auto_low':'G2','auto_high':'F#3','bars':self.data}]
         self.current_track=0
@@ -988,14 +1040,14 @@ class App:
         end=min(start+visible,len(self.data))
         self.page_label.config(text=f'{start+1}～{end}小節 / 全{len(self.data)}小節')
         container=ttk.Frame(self.root)
-        container.pack(fill='both',expand=True,padx=8,pady=4)
+        container.pack(fill='both',expand=True,padx=2,pady=4)
         self.widgets.append(container)
         legend=ttk.Frame(container)
         legend.grid(row=0,column=0,columnspan=2,sticky='w',padx=4,pady=(0,5))
         tk.Label(legend,text='● Keyから見た度数',fg='green',font=('',14,'bold')).pack(side='left',padx=(0,18))
         tk.Label(legend,text='● コードルートから見た度数',fg='purple',font=('',14,'bold')).pack(side='left')
         for c in range(2):
-            container.columnconfigure(c,weight=1)
+            container.columnconfigure(c,weight=1,uniform='barcols',minsize=760)
         for pos,i in enumerate(range(start,end)):
             row=pos//2+1
             col=pos%2
@@ -1060,7 +1112,8 @@ class App:
 
     def build_bar(self,parent,index,b,row,col):
         frame=ttk.LabelFrame(parent,text=f'小節 {index+1}',style='Bar.TLabelframe')
-        frame.grid(row=row,column=col,sticky='nsew',padx=2,pady=2)
+        frame.grid(row=row,column=col,sticky='nsew',padx=1,pady=2)
+        frame.columnconfigure(0,weight=1)
         key=tk.StringVar(value=b.key); self.visible_key_vars.append((b,key))
         split=tk.BooleanVar(value=b.split); split12=tk.BooleanVar(value=getattr(b,'split_1_2',False)); split34=tk.BooleanVar(value=getattr(b,'split_3_4',False))
         chord=tk.StringVar(value=b.chord); c12=tk.StringVar(value=b.chord_1_2); c34=tk.StringVar(value=b.chord_3_4)
@@ -1122,14 +1175,20 @@ class App:
                 else:chord_unit(chord_area,c,'3-4拍',c34,oct34,ob34)
             refresh_chord_degrees()
 
-        bass_outer=ttk.Frame(frame); bass_outer.grid(row=3,column=0,sticky='ew',padx=2,pady=(1,2))
+        bass_outer=ttk.Frame(frame); bass_outer.grid(row=3,column=0,sticky='ew',padx=0,pady=(1,2))
         ttk.Label(bass_outer,text='Bass',font=('',10,'bold')).pack(anchor='w',pady=(0,1))
         canvas=tk.Canvas(bass_outer,height=180,highlightthickness=0)
         hbar=ttk.Scrollbar(bass_outer,orient='horizontal',command=canvas.xview); canvas.configure(xscrollcommand=hbar.set)
         canvas.pack(fill='x',expand=True); hbar.pack(fill='x')
         bass_host=ttk.Frame(canvas); win=canvas.create_window((0,0),window=bass_host,anchor='nw')
-        bass_host.bind('<Configure>',lambda e:canvas.configure(scrollregion=canvas.bbox('all')))
-        canvas.bind('<Configure>',lambda e:canvas.itemconfigure(win,width=max(e.width,bass_host.winfo_reqwidth())))
+        def update_bass_scrollregion(event=None):
+            canvas.configure(scrollregion=canvas.bbox('all'))
+        def resize_bass_window(event):
+            req=bass_host.winfo_reqwidth()
+            canvas.itemconfigure(win,width=max(event.width,req))
+            update_bass_scrollregion()
+        bass_host.bind('<Configure>',update_bass_scrollregion)
+        canvas.bind('<Configure>',resize_bass_window)
 
         effective_res=b.resolution if b.resolution in RESOLUTIONS else self.res_var.get()
         if not getattr(b,'bass_grid',None):
@@ -1153,11 +1212,10 @@ class App:
             sub=RESOLUTIONS.get(effective_res,1)
             slots=sub*BEATS_PER_BAR
 
-            # 8分音符×8相当（=表示セル8個）までは1行。
-            # 9セル以上になった場合のみ、小節欄内で1-2拍 / 3-4拍の2段表示へ切替。
+            # 8セルまでは1行、9セル以上で1-2拍/3-4拍の2段。
             use_two_rows=len(b.bass_grid)>8
-
             slots_per_two_beats=sub*2
+
             for slot in range(slots):
                 if use_two_rows:
                     display_row=0 if slot<slots_per_two_beats else 1
@@ -1166,59 +1224,49 @@ class App:
                     display_row=0
                     display_col=slot
 
-                group=ttk.LabelFrame(
-                    bass_host,
-                    text=bass_grid_slot_label(slot,effective_res),
-                    padding=(0,0)
-                )
+                base_label='.'.join(str(x) for x in base_path_for_slot(slot,effective_res))
+                group=ttk.LabelFrame(bass_host,text=base_label,padding=(0,0))
                 group.grid(row=display_row,column=display_col,padx=0,pady=0,sticky='nw')
-                segments=[(idx,x) for idx,x in enumerate(b.bass_grid) if int(x.get('slot',-1))==slot]
+
+                segments=[(idx,x) for idx,x in enumerate(b.bass_grid) if int(x.get('base_slot',-1))==slot]
                 for local,(idx,item) in enumerate(segments):
                     cell=ttk.Frame(group)
                     cell.grid(row=0,column=local,padx=0,pady=0,sticky='n')
+
+                    # 分割後は1.2.1など完全な階層ラベルを表示。
+                    full_label=bass_path_label(item)
+                    if full_label!=base_label:
+                        ttk.Label(cell,text=full_label,font=('',8)).pack(pady=0)
+
                     vr=tk.StringVar(value=item.get('note',''))
                     ent=ttk.Entry(cell,textvariable=vr,width=2,justify='center',style='Bar.TEntry')
                     ent.pack(pady=0)
                     ent.bind('<Return>',lambda e,v=vr:self.normalize_entry(v))
                     ent.bind('<FocusOut>',lambda e,v=vr:self.normalize_entry(v))
-                    btns=ttk.Frame(cell)
-                    btns.pack(pady=0)
 
-                    def tiny_button(parent,text,command,enabled=True,is_plus=False):
-                        # '+'だけ二回り大きく、'-'は従来サイズ。
-                        if is_plus:
-                            w,h,font_size=15,20,16
-                            cx,cy=7.5,10
-                        else:
-                            w,h,font_size=10,16,12
-                            cx,cy=5,8
+                    btns=ttk.Frame(cell); btns.pack(pady=0)
+
+                    def tiny_button(parent,text,command,w=12,h=16,font_size=11):
                         cv=tk.Canvas(parent,width=w,height=h,highlightthickness=0,borderwidth=0)
                         cv.pack(side='left',padx=0,pady=0)
                         cv.create_rectangle(0,0,w-1,h-1)
-                        cv.create_text(cx,cy,text=text,font=('',font_size,'bold'))
-                        if enabled:
-                            cv.bind('<Button-1>',lambda e:command())
+                        cv.create_text(w/2,h/2,text=text,font=('',font_size,'bold'))
+                        cv.bind('<Button-1>',lambda e:command())
                         return cv
 
-                    tiny_button(
-                        btns,'+',
-                        lambda i=idx:self.split_bass_cell(b,i,rebuild_bass_grid),
-                        True,True
-                    )
-                    level=max(0,int(item.get('level',0)))
-                    tiny_button(
-                        btns,'-',
-                        lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid),
-                        level>0,False
-                    )
+                    tiny_button(btns,'2',lambda i=idx:self.split_bass_cell(b,i,2,rebuild_bass_grid),w=14,h=18,font_size=12)
+                    tiny_button(btns,'3',lambda i=idx:self.split_bass_cell(b,i,3,rebuild_bass_grid),w=14,h=18,font_size=12)
 
-                    degrees=ttk.Frame(cell)
-                    degrees.pack(pady=0)
-                    # 音名ボックス直下に緑＋紫を同一行。緑だけ少し右寄せ。
+                    can_merge=bool(item.get('divisions',[]))
+                    if can_merge:
+                        tiny_button(btns,'-',lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid),w=10,h=16,font_size=11)
+
+                    degrees=ttk.Frame(cell); degrees.pack(pady=0)
                     dgk=ttk.Label(degrees,text='',foreground='green',width=2,anchor='e',font=('',14,'bold'))
                     dgk.pack(side='left',padx=(2,0),pady=0)
                     dgc=ttk.Label(degrees,text='',foreground='purple',width=3,anchor='w',font=('',14,'bold'))
                     dgc.pack(side='left',padx=(0,0),pady=0)
+
                     bass_vars.append((idx,vr,slot))
                     bass_key_labels.append(dgk)
                     bass_chord_labels.append(dgc)
@@ -1249,7 +1297,7 @@ class App:
             slots=RESOLUTIONS.get(effective_res,1)*BEATS_PER_BAR
             b.bass=[]
             for slot in range(slots):
-                segs=[x for x in b.bass_grid if int(x.get('slot',-1))==slot]
+                segs=[x for x in b.bass_grid if int(x.get('base_slot',-1))==slot]
                 b.bass.append(segs[0].get('note','') if segs else '')
         self.committers.append(apply_bar_controls)
 
@@ -1273,37 +1321,60 @@ class App:
             split12_cb.pack(side='left',padx=(0,4)); split34_cb.pack(side='left')
         rebuild_chords(); rebuild_bass_grid(); refresh_chord_degrees()
 
-    def split_bass_cell(self,b,idx,refresh=None):
-        """選択した音価だけを2分割。親スロットは変えない。"""
+    def split_bass_cell(self,b,idx,parts,refresh=None):
+        """選択セルを2分割または3分割。階層パスを維持する。"""
         grid=getattr(b,'bass_grid',[])
         if not (0<=idx<len(grid)):return
+        parts=2 if int(parts)==2 else 3
         item=grid[idx]
-        level=max(0,int(item.get('level',0)))
-        if level>=6:return
-        slot=int(item.get('slot',0)); note=item.get('note','')
-        grid[idx:idx+1]=[
-            {'note':note,'slot':slot,'level':level+1},
-            {'note':'','slot':slot,'level':level+1}
-        ]
+        base_slot=int(item.get('base_slot',0))
+        path=list(item.get('path',[]))
+        divisions=list(item.get('divisions',[]))
+        if len(divisions)>=6:return
+        note=item.get('note','')
+        children=[]
+        for n in range(1,parts+1):
+            children.append({
+                'note':note if n==1 else '',
+                'base_slot':base_slot,
+                'path':path+[n],
+                'divisions':divisions+[parts]
+            })
+        grid[idx:idx+1]=children
         if refresh:refresh()
 
     def merge_bass_cell(self,b,idx,refresh=None):
-        """同じ親スロット内の同階層の隣接兄弟だけを1段戻す。"""
+        """同じ親を持つ兄弟セル一式を1段戻す。"""
         grid=getattr(b,'bass_grid',[])
         if not (0<=idx<len(grid)):return
-        slot=int(grid[idx].get('slot',0)); level=max(0,int(grid[idx].get('level',0)))
-        if level<=0:return
-        candidates=[]
-        if idx>0:candidates.append((idx-1,idx))
-        if idx+1<len(grid):candidates.append((idx,idx+1))
-        pair=None
-        for left,right in candidates:
-            if int(grid[left].get('slot',-1))==slot and int(grid[right].get('slot',-1))==slot and int(grid[left].get('level',-1))==level and int(grid[right].get('level',-1))==level:
-                pair=(left,right); break
-        if pair is None:return
-        left,right=pair
-        note=grid[left].get('note','') or grid[right].get('note','')
-        grid[left:right+1]=[{'note':note,'slot':slot,'level':level-1}]
+        item=grid[idx]
+        path=list(item.get('path',[]))
+        divisions=list(item.get('divisions',[]))
+        if not divisions or len(path)<1:return
+        parts=divisions[-1]
+        parent_path=path[:-1]
+        parent_divisions=divisions[:-1]
+        base_slot=int(item.get('base_slot',0))
+        sib_indices=[]
+        for j,x in enumerate(grid):
+            if int(x.get('base_slot',-1))!=base_slot:continue
+            xp=list(x.get('path',[])); xd=list(x.get('divisions',[]))
+            if len(xp)==len(path) and xp[:-1]==parent_path and xd==divisions:
+                sib_indices.append(j)
+        if len(sib_indices)!=parts:return
+        sib_indices.sort()
+        first=sib_indices[0]; last=sib_indices[-1]
+        note=''
+        for j in sib_indices:
+            if grid[j].get('note',''):
+                note=grid[j].get('note','')
+                break
+        grid[first:last+1]=[{
+            'note':note,
+            'base_slot':base_slot,
+            'path':parent_path,
+            'divisions':parent_divisions
+        }]
         if refresh:refresh()
 
     def bar_to_dict(self,b):
@@ -1677,8 +1748,7 @@ class App:
                 i=0
                 while i<len(grid):
                     raw=str(grid[i].get('note','')).strip()
-                    level=max(0,int(grid[i].get('level',0)))
-                    duration=bass_grid_duration_ticks(level,effective_res)
+                    duration=bass_segment_ticks(grid[i],effective_res)
                     if raw=='-':
                         bass_track.append(Message('note_off',note=0,velocity=0,channel=1,time=duration)); i+=1; continue
                     normalized=normalize_note(raw,self.auto_low_var.get(),self.auto_high_var.get())
@@ -1686,7 +1756,7 @@ class App:
                     if n is not None:
                         dur=duration; j=i+1
                         while j<len(grid) and str(grid[j].get('note','')).strip()=='-':
-                            dur+=bass_grid_duration_ticks(grid[j].get('level',0),effective_res); j+=1
+                            dur+=bass_segment_ticks(grid[j],effective_res); j+=1
                         bass_track.append(Message('note_on',note=n,velocity=80,channel=1,time=0))
                         bass_track.append(Message('note_off',note=n,velocity=0,channel=1,time=dur)); i=j
                     else:
