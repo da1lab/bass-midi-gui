@@ -307,6 +307,7 @@ class App:
         self.midi_path=None
         self.temp_work_path=Path.home()/'.bass_midi_gui_pc_work.json'
         self.player_process=None
+        self._bar_clipboard=None
         style=ttk.Style()
         style.configure('TButton',padding=(8,5))
         style.configure('TCombobox',padding=(1,1))
@@ -919,6 +920,19 @@ class App:
         for commit in getattr(self,'committers',[]):
             commit()
 
+    def copy_bar_to_clipboard(self,bar_index):
+        """小節情報を丸ごとコピー。"""
+        self.commit_current_view()
+        if not (0<=bar_index<len(self.data)):return
+        self._bar_clipboard=copy.deepcopy(self.data[bar_index])
+
+    def paste_bar_from_clipboard(self,bar_index):
+        """コピー済み小節を指定小節へ上書き貼り付け。"""
+        if self._bar_clipboard is None or not (0<=bar_index<len(self.data)):return
+        self.commit_current_view()
+        self.data[bar_index]=copy.deepcopy(self._bar_clipboard)
+        self.render()
+
     def copy_previous_bar(self,bar_index):
         if bar_index<=0:
             return
@@ -1066,6 +1080,9 @@ class App:
 
         split_row=ttk.Frame(frame); split_row.grid(row=1,column=0,sticky='w',padx=3,pady=(0,1))
         split_cb=ttk.Checkbutton(split_row,text='2拍分割',variable=split,takefocus=False); split_cb.pack(side='left')
+        cp=ttk.Frame(split_row); cp.pack(side='right',padx=(6,0))
+        ttk.Button(cp,text='C',width=2,style='BassMini.TButton',command=lambda idx=index:self.copy_bar_to_clipboard(idx)).pack(side='left')
+        ttk.Button(cp,text='P',width=2,style='BassMini.TButton',command=lambda idx=index:self.paste_bar_from_clipboard(idx)).pack(side='left',padx=(1,0))
         child=ttk.Frame(split_row); child.pack(side='left',padx=(5,0))
         split12_cb=ttk.Checkbutton(child,text='1-2拍を1拍分割',variable=split12,takefocus=False)
         split34_cb=ttk.Checkbutton(child,text='3-4拍を1拍分割',variable=split34,takefocus=False)
@@ -1104,9 +1121,9 @@ class App:
                 else:chord_unit(chord_area,c,'3-4拍',c34,oct34,ob34)
             refresh_chord_degrees()
 
-        bass_outer=ttk.Frame(frame); bass_outer.grid(row=3,column=0,sticky='ew',padx=2,pady=(2,4))
-        ttk.Label(bass_outer,text='Bass',font=('',11,'bold')).pack(anchor='w')
-        canvas=tk.Canvas(bass_outer,height=135,highlightthickness=0)
+        bass_outer=ttk.Frame(frame); bass_outer.grid(row=3,column=0,sticky='ew',padx=2,pady=(1,2))
+        ttk.Label(bass_outer,text='Bass',font=('',10,'bold')).pack(anchor='w',pady=(0,1))
+        canvas=tk.Canvas(bass_outer,height=190,highlightthickness=0)
         hbar=ttk.Scrollbar(bass_outer,orient='horizontal',command=canvas.xview); canvas.configure(xscrollcommand=hbar.set)
         canvas.pack(fill='x',expand=True); hbar.pack(fill='x')
         bass_host=ttk.Frame(canvas); win=canvas.create_window((0,0),window=bass_host,anchor='nw')
@@ -1134,43 +1151,45 @@ class App:
             b.bass_grid=normalize_bass_grid(b.bass_grid,effective_res)
             sub=RESOLUTIONS.get(effective_res,1)
             slots=sub*BEATS_PER_BAR
-            # 基本は1→2→3→4拍を1行表示。
-            # 細分化で横幅を超えた場合はBass領域の横スクロールで対応する。
+            # 1-2拍を上段、3-4拍を下段。
+            # 各段は横スクロール可能なBass領域内で横方向に展開する。
+            slots_per_two_beats=sub*2
             for slot in range(slots):
+                display_row=0 if slot<slots_per_two_beats else 1
+                display_col=slot if display_row==0 else slot-slots_per_two_beats
                 group=ttk.LabelFrame(
                     bass_host,
                     text=bass_grid_slot_label(slot,effective_res),
-                    padding=(1,1)
+                    padding=(0,0)
                 )
-                group.grid(row=0,column=slot,padx=1,pady=1,sticky='nw')
+                group.grid(row=display_row,column=display_col,padx=1,pady=0,sticky='nw')
                 segments=[(idx,x) for idx,x in enumerate(b.bass_grid) if int(x.get('slot',-1))==slot]
                 for local,(idx,item) in enumerate(segments):
                     cell=ttk.Frame(group)
                     cell.grid(row=0,column=local,padx=0,pady=0,sticky='n')
                     vr=tk.StringVar(value=item.get('note',''))
                     ent=ttk.Entry(cell,textvariable=vr,width=3,justify='center',style='Bar.TEntry')
-                    ent.pack()
+                    ent.pack(pady=0)
                     ent.bind('<Return>',lambda e,v=vr:self.normalize_entry(v))
                     ent.bind('<FocusOut>',lambda e,v=vr:self.normalize_entry(v))
                     btns=ttk.Frame(cell)
-                    btns.pack()
-                    tk.Button(
-                        btns,text='+',font=('',12,'bold'),
-                        padx=0,pady=0,borderwidth=1,highlightthickness=0,
-                        command=lambda i=idx:self.split_bass_cell(b,i,rebuild_bass_grid)
-                    ).pack(side='left',padx=0,ipadx=0)
-                    mb=tk.Button(
-                        btns,text='-',font=('',12,'bold'),
-                        padx=0,pady=0,borderwidth=1,highlightthickness=0,
-                        command=lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid)
-                    )
-                    mb.pack(side='left',padx=0,ipadx=0)
+                    btns.pack(pady=0)
+                    def tiny_button(parent,text,command,enabled=True):
+                        cv=tk.Canvas(parent,width=12,height=16,highlightthickness=0,borderwidth=0)
+                        cv.pack(side='left',padx=0,pady=0)
+                        cv.create_rectangle(0,0,11,15)
+                        cv.create_text(6,8,text=text,font=('',12,'bold'))
+                        if enabled:
+                            cv.bind('<Button-1>',lambda e:command())
+                            cv.configure(cursor='hand2')
+                        return cv
+                    tiny_button(btns,'+',lambda i=idx:self.split_bass_cell(b,i,rebuild_bass_grid),True)
                     level=max(0,int(item.get('level',0)))
-                    if level==0:mb.state(['disabled'])
-                    dgk=ttk.Label(cell,text='',foreground='green',width=3,anchor='center',font=('',11,'bold'))
-                    dgk.pack()
-                    dgc=ttk.Label(cell,text='',foreground='purple',width=4,anchor='center',font=('',11,'bold'))
-                    dgc.pack()
+                    tiny_button(btns,'-',lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid),level>0)
+                    dgk=ttk.Label(cell,text='',foreground='green',width=3,anchor='center',font=('',10,'bold'))
+                    dgk.pack(pady=0)
+                    dgc=ttk.Label(cell,text='',foreground='purple',width=4,anchor='center',font=('',10,'bold'))
+                    dgc.pack(pady=0)
                     bass_vars.append((idx,vr,slot))
                     bass_key_labels.append(dgk)
                     bass_chord_labels.append(dgc)
