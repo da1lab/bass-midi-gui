@@ -711,17 +711,20 @@ class App:
         key=self.default_key_var.get()
         if not key:
             return
-        # まず現在表示中の入力内容をBarへ保存する。
+        # 表示中のGUI値を先に保存する。
         self.commit_current_view()
         self.sync_track_settings()
-        # 全Ex・全小節へKeyを適用する。
+        # 表示中KeyのStringVarも新Keyへ更新する。
+        # ボタンクリックに伴うFocusOut等が後から発生しても旧Keyへ戻らない。
+        for b,key_var in getattr(self,'visible_key_vars',[]):
+            key_var.set(key)
+            b.key=key
+        # 全Ex・全小節へ適用。
         for t in self.tracks:
             for b in t.get('bars',[]):
                 b.key=key
         self.data=self.tracks[self.current_track]['bars']
         self.batch_key_var.set(key)
-        # render() 冒頭のcommit_current_view()が旧GUI値を再保存しないよう、
-        # 適用前のcommitterを破棄してから再描画する。
         self.committers=[]
         self.render()
 
@@ -792,6 +795,7 @@ class App:
     def render(self):
         self.commit_current_view()
         self.committers=[]
+        self.visible_key_vars=[]
         self.input_focus_widgets=[]
         for w in self.widgets:
             w.destroy()
@@ -875,6 +879,7 @@ class App:
         frame=ttk.LabelFrame(parent,text=f'小節 {index+1}',style='Bar.TLabelframe')
         frame.grid(row=row,column=col,sticky='nsew',padx=2,pady=2)
         key=tk.StringVar(value=b.key)
+        self.visible_key_vars.append((b,key))
         split=tk.BooleanVar(value=b.split)
         chord=tk.StringVar(value=b.chord)
         c12=tk.StringVar(value=b.chord_1_2)
