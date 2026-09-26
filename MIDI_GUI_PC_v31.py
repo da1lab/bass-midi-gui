@@ -578,25 +578,24 @@ class App:
         body=ttk.Frame(page)
         body.pack(fill='both',expand=True)
         body.columnconfigure(0,weight=1)
-        body.columnconfigure(1,weight=1)
+        body.columnconfigure(1,weight=0)
+        body.columnconfigure(2,weight=0)
+        body.columnconfigure(3,weight=1)
 
         style=ttk.Style()
-        style.configure('FileBig.TButton',font=('',15,'bold'),padding=(4,10))
+        style.configure('FileBig.TButton',font=('',19,'bold'),padding=(4,10))
 
         def file_button(parent,row,text,command):
-            # 2列のうち左1列だけを使うことで従来の約1/2幅。
             parent.columnconfigure(0,weight=1)
-            parent.columnconfigure(1,weight=1)
-            hit=ttk.Frame(parent,padding=(3,4))
+            hit=ttk.Frame(parent,padding=(4,5))
             hit.grid(row=row,column=0,sticky='ew',pady=2)
             btn=ttk.Button(hit,text=text,command=command,style='FileBig.TButton')
             btn.pack(fill='x')
-            # 外周余白もクリック判定に含める。
             hit.bind('<Button-1>',lambda e,c=command:c())
             return btn
 
-        load_col=ttk.LabelFrame(body,text='読み込み・再生',padding=12)
-        load_col.grid(row=0,column=0,padx=(0,10),pady=4,sticky='nsew')
+        load_col=ttk.LabelFrame(body,text='読み込み・再生',padding=8)
+        load_col.grid(row=0,column=1,padx=(0,6),pady=4,sticky='ns')
         file_button(load_col,0,'一時保存読込',self.load_temp_work)
         file_button(load_col,1,'プロジェクト読込',self.load_project)
         file_button(load_col,2,'MIDI読込',self.load_midi)
@@ -604,8 +603,8 @@ class App:
         file_button(load_col,4,'停止',self.stop_midi)
         file_button(load_col,5,'CSV読込',self.load_csv)
 
-        save_col=ttk.LabelFrame(body,text='保存・出力',padding=12)
-        save_col.grid(row=0,column=1,padx=(10,0),pady=4,sticky='nsew')
+        save_col=ttk.LabelFrame(body,text='保存・出力',padding=8)
+        save_col.grid(row=0,column=2,padx=(6,0),pady=4,sticky='ns')
         file_button(save_col,0,'一時保存',self.save_temp_work)
         file_button(save_col,1,'プロジェクト保存',self.save_project)
         file_button(save_col,2,'MIDI出力',self.open_midi_export)
@@ -1069,8 +1068,28 @@ class App:
         container=ttk.Frame(self.root)
         container.pack(fill='both',expand=True,padx=2,pady=4)
         self.widgets.append(container)
+        # 右上: 選択中Bass入力のミラー表示。横スクロール外でも内容を確認・編集できる。
+        mirror=ttk.LabelFrame(container,text='選択中 Bass',padding=(6,4))
+        mirror.grid(row=0,column=1,sticky='ne',padx=(4,4),pady=(0,4))
+        self._bass_mirror_label_var=tk.StringVar(value='—')
+        self._bass_mirror_value_var=tk.StringVar(value='')
+        ttk.Label(mirror,textvariable=self._bass_mirror_label_var,font=('',11,'bold')).pack(side='left',padx=(0,6))
+        mirror_entry=ttk.Entry(mirror,textvariable=self._bass_mirror_value_var,width=7,justify='center',style='Bar.TEntry')
+        mirror_entry.pack(side='left',ipadx=4,ipady=3)
+        self._bass_mirror_entry=mirror_entry
+        self._bass_mirror_source_var=None
+        self._bass_mirror_updating=False
+
+        def mirror_to_source(*args):
+            if self._bass_mirror_updating:return
+            src=getattr(self,'_bass_mirror_source_var',None)
+            if src is not None:
+                try:src.set(self._bass_mirror_value_var.get())
+                except:pass
+        self._bass_mirror_value_var.trace_add('write',mirror_to_source)
+
         legend=ttk.Frame(container)
-        legend.grid(row=0,column=0,columnspan=2,sticky='w',padx=4,pady=(0,5))
+        legend.grid(row=0,column=0,sticky='w',padx=4,pady=(0,5))
         tk.Label(legend,text='● Keyから見た度数',fg='green',font=('',14,'bold')).pack(side='left',padx=(0,18))
         tk.Label(legend,text='● コードルートから見た度数',fg='purple',font=('',14,'bold')).pack(side='left')
         for c in range(2):
@@ -1317,6 +1336,17 @@ class App:
                     ent.pack(pady=0,ipadx=3,ipady=2)
                     ent.bind('<Return>',lambda e,v=vr:self.normalize_entry(v))
                     ent.bind('<FocusOut>',lambda e,v=vr:self.normalize_entry(v))
+
+                    def select_bass_entry(event=None,v=vr,it=item):
+                        self._bass_mirror_source_var=v
+                        self._bass_mirror_updating=True
+                        try:
+                            self._bass_mirror_label_var.set(bass_path_label(it))
+                            self._bass_mirror_value_var.set(v.get())
+                        finally:
+                            self._bass_mirror_updating=False
+
+                    ent.bind('<FocusIn>',select_bass_entry)
                     # セルの余白も音名入力欄のクリック判定として利用。
                     cell.bind('<Button-1>',lambda e,w=ent:w.focus_set())
 
@@ -1334,8 +1364,8 @@ class App:
                         cv.bind('<Button-1>',lambda e:command())
                         return holder
 
-                    tiny_button(btns,'2',lambda i=idx:self.split_bass_cell(b,i,2,rebuild_bass_grid),w=17,h=22,font_size=14,hit_pad=3)
-                    tiny_button(btns,'3',lambda i=idx:self.split_bass_cell(b,i,3,rebuild_bass_grid),w=17,h=22,font_size=14,hit_pad=3)
+                    tiny_button(btns,'2',lambda i=idx:self.split_bass_cell(b,i,2,rebuild_bass_grid),w=17,h=22,font_size=14,hit_pad=7)
+                    tiny_button(btns,'3',lambda i=idx:self.split_bass_cell(b,i,3,rebuild_bass_grid),w=17,h=22,font_size=14,hit_pad=7)
 
                     can_merge=bool(item.get('divisions',[]))
                     if can_merge:
@@ -1348,6 +1378,16 @@ class App:
                     dgc.pack(side='left',padx=(0,0),pady=0)
                     for target in (degrees,dgk,dgc):
                         target.bind('<Button-1>',lambda e,w=ent:w.focus_set())
+
+                    def source_to_mirror(*args,v=vr,it=item):
+                        if getattr(self,'_bass_mirror_source_var',None) is v:
+                            self._bass_mirror_updating=True
+                            try:
+                                self._bass_mirror_label_var.set(bass_path_label(it))
+                                self._bass_mirror_value_var.set(v.get())
+                            finally:
+                                self._bass_mirror_updating=False
+                    vr.trace_add('write',source_to_mirror)
 
                     bass_vars.append((idx,vr,slot))
                     bass_key_labels.append(dgk)
