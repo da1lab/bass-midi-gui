@@ -17,7 +17,7 @@ TICKS_PER_BEAT = 480
 BEATS_PER_BAR = 4
 DEFAULT_BPM = 120
 DEFAULT_BARS = 64
-VISIBLE_BARS = 8
+VISIBLE_BARS = 4
 MIN_VISIBLE_BARS = 1
 MAX_VISIBLE_BARS = 32
 
@@ -991,14 +991,14 @@ class App:
         container.pack(fill='both',expand=True,padx=8,pady=4)
         self.widgets.append(container)
         legend=ttk.Frame(container)
-        legend.grid(row=0,column=0,columnspan=4,sticky='w',padx=4,pady=(0,5))
+        legend.grid(row=0,column=0,columnspan=2,sticky='w',padx=4,pady=(0,5))
         tk.Label(legend,text='● Keyから見た度数',fg='green',font=('',14,'bold')).pack(side='left',padx=(0,18))
         tk.Label(legend,text='● コードルートから見た度数',fg='purple',font=('',14,'bold')).pack(side='left')
-        for c in range(4):
+        for c in range(2):
             container.columnconfigure(c,weight=1)
         for pos,i in enumerate(range(start,end)):
-            row=pos//4+1
-            col=pos%4
+            row=pos//2+1
+            col=pos%2
             self.build_bar(container,i,self.data[i],row,col)
         self.bind_serial_tab_navigation()
 
@@ -1074,15 +1074,15 @@ class App:
         key_row=ttk.Frame(frame); key_row.grid(row=0,column=0,sticky='w',padx=3,pady=(2,1))
         ttk.Label(key_row,text='Key',style='BarLabel.TLabel').pack(side='left')
         key_box=ttk.Combobox(key_row,textvariable=key,values=KEYS,state='readonly',width=5,takefocus=False,style='Bar.TCombobox'); key_box.pack(side='left',padx=(2,3))
-        ttk.Button(key_row,text='#/♭',width=4,command=lambda idx=index:self.toggle_bar_accidental(idx)).pack(side='left',padx=(0,3))
+        ttk.Button(key_row,text='#/♭',width=2,command=lambda idx=index:self.toggle_bar_accidental(idx)).pack(side='left',padx=(0,3))
         ttk.Label(key_row,text='分解能',style='BarLabel.TLabel').pack(side='left',padx=(2,1))
         bar_res_box=ttk.Combobox(key_row,textvariable=bar_res,values=['Track']+list(RESOLUTIONS.keys()),state='readonly',width=7,takefocus=False); bar_res_box.pack(side='left',padx=(1,2))
 
         split_row=ttk.Frame(frame); split_row.grid(row=1,column=0,sticky='w',padx=3,pady=(0,1))
         split_cb=ttk.Checkbutton(split_row,text='2拍分割',variable=split,takefocus=False); split_cb.pack(side='left')
         cp=ttk.Frame(split_row); cp.pack(side='right',padx=(6,0))
-        ttk.Button(cp,text='C',width=2,style='BassMini.TButton',command=lambda idx=index:self.copy_bar_to_clipboard(idx)).pack(side='left')
-        ttk.Button(cp,text='P',width=2,style='BassMini.TButton',command=lambda idx=index:self.paste_bar_from_clipboard(idx)).pack(side='left',padx=(1,0))
+        ttk.Button(cp,text='C',width=1,style='BassMini.TButton',command=lambda idx=index:self.copy_bar_to_clipboard(idx)).pack(side='left')
+        ttk.Button(cp,text='P',width=1,style='BassMini.TButton',command=lambda idx=index:self.paste_bar_from_clipboard(idx)).pack(side='left',padx=(1,0))
         child=ttk.Frame(split_row); child.pack(side='left',padx=(5,0))
         split12_cb=ttk.Checkbutton(child,text='1-2拍を1拍分割',variable=split12,takefocus=False)
         split34_cb=ttk.Checkbutton(child,text='3-4拍を1拍分割',variable=split34,takefocus=False)
@@ -1094,9 +1094,9 @@ class App:
 
         def chord_unit(parent,col,label,var,oct_var,onbass_var):
             unit=ttk.Frame(parent); unit.grid(row=0,column=col,sticky='n',padx=1)
-            if label:ttk.Label(unit,text=label,font=('',9)).pack(pady=(0,0))
-            dg=ttk.Label(unit,text='',foreground='blue',anchor='center',font=('',13,'bold'))
-            dg.pack(pady=(0,0))
+            if label:ttk.Label(unit,text=label,font=('',9),anchor='w').pack(fill='x',pady=(0,0))
+            dg=ttk.Label(unit,text='',foreground='blue',anchor='w',font=('',13,'bold'))
+            dg.pack(fill='x',pady=(0,0))
             line=ttk.Frame(unit); line.pack()
             box=ttk.Combobox(line,textvariable=var,values=CHORDS,width=4,height=18,takefocus=True,style='Bar.TCombobox',state='readonly'); box.pack(side='left',padx=(0,1))
             ttk.Spinbox(line,from_=0,to=8,textvariable=oct_var,width=2,takefocus=False).pack(side='left',padx=(0,1))
@@ -1153,20 +1153,9 @@ class App:
             sub=RESOLUTIONS.get(effective_res,1)
             slots=sub*BEATS_PER_BAR
 
-            # 表示切替:
-            # 通常は1～4拍を1行。
-            # 8分音符×8相当を超える細分化がある場合のみ
-            # 1-2拍 / 3-4拍 の2段表示へ切り替える。
-            # 各セグメントのlevelから8分音符換算の表示密度を見積もる。
-            equivalent_eighths=0
-            for item in b.bass_grid:
-                level=max(0,int(item.get('level',0)))
-                base_sub=RESOLUTIONS.get(effective_res,1)
-                # 4分基準level0=2個の8分相当、8分基準level0=1個相当。
-                seg_eighths=max(1,round((2/base_sub)/(2**level)))
-                equivalent_eighths+=seg_eighths
-            # セグメント数そのものも細分化量をよく表すため併用。
-            use_two_rows=(len(b.bass_grid)>8 or equivalent_eighths>8)
+            # 8分音符×8相当（=表示セル8個）までは1行。
+            # 9セル以上になった場合のみ、小節欄内で1-2拍 / 3-4拍の2段表示へ切替。
+            use_two_rows=len(b.bass_grid)>8
 
             slots_per_two_beats=sub*2
             for slot in range(slots):
@@ -1209,7 +1198,6 @@ class App:
                         cv.create_text(cx,cy,text=text,font=('',font_size,'bold'))
                         if enabled:
                             cv.bind('<Button-1>',lambda e:command())
-                            cv.configure(cursor='hand2')
                         return cv
 
                     tiny_button(
