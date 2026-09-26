@@ -489,6 +489,7 @@ class App:
 
     def render_track_config_page(self):
         """トラック構成ページ全体をメインウインドウに描画する。"""
+        self.renumber_tracks()
         for w in list(self.root.winfo_children()):
             try:w.destroy()
             except:pass
@@ -597,6 +598,7 @@ class App:
             return
         self._last_deleted_track=(idx,self.tracks[idx])
         del self.tracks[idx]
+        self.renumber_tracks()
         if self.current_track>=len(self.tracks):self.current_track=len(self.tracks)-1
         self._track_config_page_no=min(self._track_config_page_no,max(0,(len(self.tracks)-1)//8))
         self.render_track_config_page()
@@ -608,6 +610,7 @@ class App:
         idx,track=item
         idx=max(0,min(idx,len(self.tracks)))
         self.tracks.insert(idx,track)
+        self.renumber_tracks()
         self._last_deleted_track=None
         self._track_config_page_no=idx//8
         self.render_track_config_page()
@@ -643,6 +646,7 @@ class App:
         # Barオブジェクトをそのまま連結するのでKey/コード分割/分解能/Bass等を全保持。
         dst_track['bars'].extend(src_track.get('bars',[]))
         del self.tracks[src]
+        self.renumber_tracks()
         # 削除により結合先indexが前へずれる場合を補正。
         new_dst=dst-1 if src<dst else dst
         self.current_track=max(0,min(new_dst,len(self.tracks)-1))
@@ -663,6 +667,7 @@ class App:
         # 元Exを元の位置へ復帰。
         insert_at=max(0,min(src_index,len(self.tracks)))
         self.tracks.insert(insert_at,state['src_track'])
+        self.renumber_tracks()
         self.current_track=max(0,min(state['current_track'],len(self.tracks)-1))
         self._last_merge_state=None
         self._track_config_page_no=insert_at//8
@@ -670,10 +675,16 @@ class App:
         self._merge_target_var.set('')
         self.render_track_config_page()
 
+    def renumber_tracks(self):
+        """現在の並び順を正としてEx番号を01,02,...へ再配番する。"""
+        for i,t in enumerate(self.tracks):
+            t['no']=i+1
+
     def refresh_track_box(self):
         if not hasattr(self,'track_box'):
             return
-        vals=[f"{int(t.get('no',i+1)):02d}" for i,t in enumerate(self.tracks)]
+        self.renumber_tracks()
+        vals=[f"{i+1:02d}" for i in range(len(self.tracks))]
         self.track_box['values']=vals
         if vals:
             self.track_var.set(vals[self.current_track])
@@ -1138,7 +1149,7 @@ class App:
         return b
 
     def state_dict(self):
-        self.commit_current_view(); self.sync_track_settings()
+        self.commit_current_view(); self.sync_track_settings(); self.renumber_tracks()
         tracks=[]
         for t in self.tracks:
             tracks.append({'no':t['no'],'name':t['name'],'bpm':t['bpm'],'resolution':t['resolution'],
