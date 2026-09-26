@@ -1363,27 +1363,26 @@ class App:
 
                     btns=tk.Frame(cell,bg='white'); btns.pack(pady=0)
 
-                    def tiny_button(parent,text,command,w=12,h=16,font_size=11,hit_pad=2):
-                        holder=tk.Frame(parent,width=w+hit_pad*2,height=h+hit_pad*2)
-                        holder.pack(side='left',padx=0,pady=0)
-                        holder.pack_propagate(False)
-                        cv=tk.Canvas(holder,width=w,height=h,highlightthickness=0,borderwidth=0)
-                        cv.place(x=hit_pad,y=hit_pad)
+                    def tiny_button(parent,text,command,w=12,h=16,font_size=11):
+                        # 見た目そのものをクリック判定範囲にする。
+                        # 外側holderを使わないため、隣接ボタン間に余計な隙間が生じない。
+                        cv=tk.Canvas(parent,width=w,height=h,highlightthickness=0,borderwidth=0)
+                        cv.pack(side='left',padx=0,pady=0)
                         cv.create_rectangle(0,0,w-1,h-1)
                         cv.create_text(w/2,h/2,text=text,font=('',font_size,'bold'))
-                        holder.bind('<Button-1>',lambda e:command())
                         cv.bind('<Button-1>',lambda e:command())
-                        return holder
+                        return cv
 
-                    bw=max(12,round(16*btn_scale))
-                    bh=max(18,round(22*btn_scale))
-                    bf=max(11,round(14*btn_scale))
-                    tiny_button(btns,'2',lambda i=idx:self.split_bass_cell(b,i,2,rebuild_bass_grid),w=bw,h=bh,font_size=bf,hit_pad=10)
-                    tiny_button(btns,'3',lambda i=idx:self.split_bass_cell(b,i,3,rebuild_bass_grid),w=bw,h=bh,font_size=bf,hit_pad=10)
+                    # 2/3は隙間ゼロ。細分化時も押しやすさ優先で最低サイズを確保。
+                    bw=max(22,round(24*btn_scale))
+                    bh=max(26,round(28*btn_scale))
+                    bf=max(13,round(15*btn_scale))
+                    tiny_button(btns,'2',lambda i=idx:self.split_bass_cell(b,i,2,rebuild_bass_grid),w=bw,h=bh,font_size=bf)
+                    tiny_button(btns,'3',lambda i=idx:self.split_bass_cell(b,i,3,rebuild_bass_grid),w=bw,h=bh,font_size=bf)
 
                     can_merge=bool(item.get('divisions',[]))
                     if can_merge:
-                        tiny_button(btns,'-',lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid),w=10,h=16,font_size=11,hit_pad=2)
+                        tiny_button(btns,'-',lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid),w=12,h=18,font_size=11)
 
                     degrees=tk.Frame(cell,bg='white'); degrees.pack(pady=0)
                     dgk=tk.Label(degrees,text='',fg='green',bg='white',width=degree_widths[0],anchor='e',font=('',14,'bold'))
