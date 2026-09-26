@@ -930,8 +930,7 @@ class App:
         ttk.Checkbutton(key_row,text='2拍分割',variable=split,takefocus=False).pack(side='left',padx=3)
 
         bass_row=ttk.Frame(frame)
-        bass_row.grid(row=2,column=0,sticky='w',padx=4,pady=(3,5))
-        ttk.Label(bass_row,text='Bass',font=('',11,'bold')).grid(row=0,column=0,padx=(0,3),sticky='nw')
+        bass_row.grid(row=2,column=0,sticky='w',padx=2,pady=(3,5))
         effective_res=b.resolution if b.resolution in RESOLUTIONS else self.res_var.get()
         sub=RESOLUTIONS[effective_res]
         count=sub*BEATS_PER_BAR
@@ -940,21 +939,28 @@ class App:
         bass=[]
         bass_key_labels=[]
         bass_chord_labels=[]
-
+        # 1行あたり最大8音。16分/32分では自動的に2行/4行へ折り返す。
+        cells_per_row=8
         for i in range(count):
+            wrap_row=i//cells_per_row
+            wrap_col=i%cells_per_row
+            if wrap_col==0:
+                ttk.Label(bass_row,text='Bass' if wrap_row==0 else '',font=('',11,'bold')).grid(
+                    row=wrap_row,column=0,padx=(0,2),sticky='nw')
             cell=ttk.Frame(bass_row)
-            cell.grid(row=0,column=i+1,padx=1,pady=0,sticky='n')
+            cell.grid(row=wrap_row,column=wrap_col+1,padx=0,pady=(0,2),sticky='n')
             sv=tk.StringVar(value=b.bass[i])
             beat=i//sub+1
             subdivision=i%sub+1
             pos_text=str(beat) if sub==1 else f'{beat}.{subdivision}'
-            pos_label=ttk.Label(cell,text=pos_text,font=('',10))
+            pos_label=ttk.Label(cell,text=pos_text,font=('',9))
             pos_label.pack(pady=(0,1))
-            entry=ttk.Entry(cell,textvariable=sv,width=5,justify='center',takefocus=True,style='Bar.TEntry')
-            entry.pack(pady=(1,2))
-            dg_key=ttk.Label(cell,text='',foreground='green',width=5,anchor='center',font=('',16,'bold'))
+            # 従来 width=5 → width=3（約60%）
+            entry=ttk.Entry(cell,textvariable=sv,width=3,justify='center',takefocus=True,style='Bar.TEntry')
+            entry.pack(pady=(1,1))
+            dg_key=ttk.Label(cell,text='',foreground='green',width=3,anchor='center',font=('',13,'bold'))
             dg_key.pack()
-            dg_chord=ttk.Label(cell,text='',foreground='purple',width=6,anchor='center',font=('',16,'bold'))
+            dg_chord=ttk.Label(cell,text='',foreground='purple',width=4,anchor='center',font=('',13,'bold'))
             dg_chord.pack()
             # 入力欄周辺もクリック領域として使う。
             focus_bass=lambda e,w=entry:w.focus_set()
@@ -1380,14 +1386,31 @@ class App:
             bass_values=list(b.bass)
             while len(bass_values)<sub*4:
                 bass_values.append('')
-            for s in bass_values[:sub*4]:
-                s=normalize_note(s,self.auto_low_var.get(),self.auto_high_var.get())
-                n=auto_midi(s,self.auto_low_var.get(),self.auto_high_var.get()) if s and s!='-' else None
+            bass_values=bass_values[:sub*4]
+            i=0
+            while i<len(bass_values):
+                raw=bass_values[i].strip()
+                # '-' は休符ではなく、直前に入力した音をこのスロット分だけ延長するタイ。
+                # 例: 8分音符設定で C3,- = C3の4分音符 / C3,'' = 8分音符+8分休符。
+                if raw=='-':
+                    bass_track.append(Message('note_off',note=0,velocity=0,channel=1,time=ticks_per_note))
+                    i+=1
+                    continue
+                normalized=normalize_note(raw,self.auto_low_var.get(),self.auto_high_var.get())
+                n=auto_midi(normalized,self.auto_low_var.get(),self.auto_high_var.get()) if normalized else None
                 if n is not None:
+                    tie_count=0
+                    j=i+1
+                    while j<len(bass_values) and bass_values[j].strip()=='-':
+                        tie_count+=1
+                        j+=1
+                    duration=ticks_per_note*(1+tie_count)
                     bass_track.append(Message('note_on',note=n,velocity=80,channel=1,time=0))
-                    bass_track.append(Message('note_off',note=n,velocity=0,channel=1,time=ticks_per_note))
+                    bass_track.append(Message('note_off',note=n,velocity=0,channel=1,time=duration))
+                    i=j
                 else:
                     bass_track.append(Message('note_off',note=0,velocity=0,channel=1,time=ticks_per_note))
+                    i+=1
 
         path=output_path
         if not path:
