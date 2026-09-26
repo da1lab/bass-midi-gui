@@ -1154,12 +1154,14 @@ class App:
                     ent.bind('<FocusOut>',lambda e,v=vr:self.normalize_entry(v))
                     btns=ttk.Frame(cell)
                     btns.pack()
-                    ttk.Button(
-                        btns,text='+',width=1,style='BassMini.TButton',
+                    tk.Button(
+                        btns,text='+',font=('',12,'bold'),
+                        padx=0,pady=0,borderwidth=1,highlightthickness=0,
                         command=lambda i=idx:self.split_bass_cell(b,i,rebuild_bass_grid)
                     ).pack(side='left',padx=0,ipadx=0)
-                    mb=ttk.Button(
-                        btns,text='-',width=1,style='BassMini.TButton',
+                    mb=tk.Button(
+                        btns,text='-',font=('',12,'bold'),
+                        padx=0,pady=0,borderwidth=1,highlightthickness=0,
                         command=lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid)
                     )
                     mb.pack(side='left',padx=0,ipadx=0)
