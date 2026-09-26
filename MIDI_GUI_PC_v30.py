@@ -1177,7 +1177,7 @@ class App:
 
         bass_outer=ttk.Frame(frame); bass_outer.grid(row=3,column=0,sticky='ew',padx=0,pady=(1,2))
         ttk.Label(bass_outer,text='Bass',font=('',10,'bold')).pack(anchor='w',pady=(0,1))
-        canvas=tk.Canvas(bass_outer,height=180,highlightthickness=0)
+        canvas=tk.Canvas(bass_outer,height=120,highlightthickness=0)
         hbar=ttk.Scrollbar(bass_outer,orient='horizontal',command=canvas.xview); canvas.configure(xscrollcommand=hbar.set)
         canvas.pack(fill='x',expand=True); hbar.pack(fill='x')
         bass_host=ttk.Frame(canvas); win=canvas.create_window((0,0),window=bass_host,anchor='nw')
@@ -1212,17 +1212,10 @@ class App:
             sub=RESOLUTIONS.get(effective_res,1)
             slots=sub*BEATS_PER_BAR
 
-            # 8セルまでは1行、9セル以上で1-2拍/3-4拍の2段。
-            use_two_rows=len(b.bass_grid)>8
-            slots_per_two_beats=sub*2
-
+            # 常に1行表示。細分化で横幅を超えた場合は横スクロールのみで対応。
             for slot in range(slots):
-                if use_two_rows:
-                    display_row=0 if slot<slots_per_two_beats else 1
-                    display_col=slot if display_row==0 else slot-slots_per_two_beats
-                else:
-                    display_row=0
-                    display_col=slot
+                display_row=0
+                display_col=slot
 
                 base_label='.'.join(str(x) for x in base_path_for_slot(slot,effective_res))
                 group=ttk.LabelFrame(bass_host,text=base_label,padding=(0,0))
@@ -1246,20 +1239,24 @@ class App:
 
                     btns=ttk.Frame(cell); btns.pack(pady=0)
 
-                    def tiny_button(parent,text,command,w=12,h=16,font_size=11):
-                        cv=tk.Canvas(parent,width=w,height=h,highlightthickness=0,borderwidth=0)
-                        cv.pack(side='left',padx=0,pady=0)
+                    def tiny_button(parent,text,command,w=12,h=16,font_size=11,hit_pad=2):
+                        holder=tk.Frame(parent,width=w+hit_pad*2,height=h+hit_pad*2)
+                        holder.pack(side='left',padx=0,pady=0)
+                        holder.pack_propagate(False)
+                        cv=tk.Canvas(holder,width=w,height=h,highlightthickness=0,borderwidth=0)
+                        cv.place(x=hit_pad,y=hit_pad)
                         cv.create_rectangle(0,0,w-1,h-1)
                         cv.create_text(w/2,h/2,text=text,font=('',font_size,'bold'))
+                        holder.bind('<Button-1>',lambda e:command())
                         cv.bind('<Button-1>',lambda e:command())
-                        return cv
+                        return holder
 
-                    tiny_button(btns,'2',lambda i=idx:self.split_bass_cell(b,i,2,rebuild_bass_grid),w=14,h=18,font_size=12)
-                    tiny_button(btns,'3',lambda i=idx:self.split_bass_cell(b,i,3,rebuild_bass_grid),w=14,h=18,font_size=12)
+                    tiny_button(btns,'2',lambda i=idx:self.split_bass_cell(b,i,2,rebuild_bass_grid),w=17,h=22,font_size=14,hit_pad=3)
+                    tiny_button(btns,'3',lambda i=idx:self.split_bass_cell(b,i,3,rebuild_bass_grid),w=17,h=22,font_size=14,hit_pad=3)
 
                     can_merge=bool(item.get('divisions',[]))
                     if can_merge:
-                        tiny_button(btns,'-',lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid),w=10,h=16,font_size=11)
+                        tiny_button(btns,'-',lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid),w=10,h=16,font_size=11,hit_pad=2)
 
                     degrees=ttk.Frame(cell); degrees.pack(pady=0)
                     dgk=ttk.Label(degrees,text='',foreground='green',width=2,anchor='e',font=('',14,'bold'))
