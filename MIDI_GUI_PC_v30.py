@@ -316,7 +316,7 @@ class App:
         style.configure('BarBold.TLabel',font=('',11,'bold'))
         style.configure('Bar.TCombobox',font=('',11),padding=(4,5,4,5))
         style.configure('Bar.TEntry',font=('',11),padding=(4,5,4,5))
-        style.configure('BassMini.TButton',padding=(1,1),font=('',8))
+        style.configure('BassMini.TButton',padding=(0,0),font=('',12,'bold'))
         self.build_top()
         self.render()
 
@@ -1106,7 +1106,7 @@ class App:
 
         bass_outer=ttk.Frame(frame); bass_outer.grid(row=3,column=0,sticky='ew',padx=2,pady=(2,4))
         ttk.Label(bass_outer,text='Bass',font=('',11,'bold')).pack(anchor='w')
-        canvas=tk.Canvas(bass_outer,height=132,highlightthickness=0)
+        canvas=tk.Canvas(bass_outer,height=135,highlightthickness=0)
         hbar=ttk.Scrollbar(bass_outer,orient='horizontal',command=canvas.xview); canvas.configure(xscrollcommand=hbar.set)
         canvas.pack(fill='x',expand=True); hbar.pack(fill='x')
         bass_host=ttk.Frame(canvas); win=canvas.create_window((0,0),window=bass_host,anchor='nw')
@@ -1132,30 +1132,46 @@ class App:
             for w in bass_host.winfo_children():w.destroy()
             bass_vars.clear(); bass_key_labels.clear(); bass_chord_labels.clear()
             b.bass_grid=normalize_bass_grid(b.bass_grid,effective_res)
-            slots=RESOLUTIONS.get(effective_res,1)*BEATS_PER_BAR
-            # 親スロットを基準に表示。4分なら4枠、8分なら8枠。
-            parents_per_row=4
+            sub=RESOLUTIONS.get(effective_res,1)
+            slots=sub*BEATS_PER_BAR
+            # 基本は1→2→3→4拍を1行表示。
+            # 細分化で横幅を超えた場合はBass領域の横スクロールで対応する。
             for slot in range(slots):
-                group=ttk.LabelFrame(bass_host,text=bass_grid_slot_label(slot,effective_res),padding=(2,2))
-                group.grid(row=slot//parents_per_row,column=slot%parents_per_row,padx=2,pady=2,sticky='nw')
+                group=ttk.LabelFrame(
+                    bass_host,
+                    text=bass_grid_slot_label(slot,effective_res),
+                    padding=(1,1)
+                )
+                group.grid(row=0,column=slot,padx=1,pady=1,sticky='nw')
                 segments=[(idx,x) for idx,x in enumerate(b.bass_grid) if int(x.get('slot',-1))==slot]
                 for local,(idx,item) in enumerate(segments):
-                    cell=ttk.Frame(group); cell.grid(row=0,column=local,padx=1,pady=0,sticky='n')
+                    cell=ttk.Frame(group)
+                    cell.grid(row=0,column=local,padx=0,pady=0,sticky='n')
                     vr=tk.StringVar(value=item.get('note',''))
-                    ent=ttk.Entry(cell,textvariable=vr,width=3,justify='center',style='Bar.TEntry'); ent.pack()
+                    ent=ttk.Entry(cell,textvariable=vr,width=3,justify='center',style='Bar.TEntry')
+                    ent.pack()
                     ent.bind('<Return>',lambda e,v=vr:self.normalize_entry(v))
                     ent.bind('<FocusOut>',lambda e,v=vr:self.normalize_entry(v))
-                    btns=ttk.Frame(cell); btns.pack()
-                    ttk.Button(btns,text='+',width=1,style='BassMini.TButton',
-                        command=lambda i=idx:self.split_bass_cell(b,i,rebuild_bass_grid)).pack(side='left')
-                    mb=ttk.Button(btns,text='×',width=1,style='BassMini.TButton',
-                        command=lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid))
-                    mb.pack(side='left',padx=(1,0))
+                    btns=ttk.Frame(cell)
+                    btns.pack()
+                    ttk.Button(
+                        btns,text='+',width=1,style='BassMini.TButton',
+                        command=lambda i=idx:self.split_bass_cell(b,i,rebuild_bass_grid)
+                    ).pack(side='left',padx=0,ipadx=0)
+                    mb=ttk.Button(
+                        btns,text='-',width=1,style='BassMini.TButton',
+                        command=lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid)
+                    )
+                    mb.pack(side='left',padx=0,ipadx=0)
                     level=max(0,int(item.get('level',0)))
                     if level==0:mb.state(['disabled'])
-                    dgk=ttk.Label(cell,text='',foreground='green',width=3,anchor='center',font=('',11,'bold')); dgk.pack()
-                    dgc=ttk.Label(cell,text='',foreground='purple',width=4,anchor='center',font=('',11,'bold')); dgc.pack()
-                    bass_vars.append((idx,vr,slot)); bass_key_labels.append(dgk); bass_chord_labels.append(dgc)
+                    dgk=ttk.Label(cell,text='',foreground='green',width=3,anchor='center',font=('',11,'bold'))
+                    dgk.pack()
+                    dgc=ttk.Label(cell,text='',foreground='purple',width=4,anchor='center',font=('',11,'bold'))
+                    dgc.pack()
+                    bass_vars.append((idx,vr,slot))
+                    bass_key_labels.append(dgk)
+                    bass_chord_labels.append(dgc)
                     self.input_focus_widgets.append(ent)
             refresh_bass_degrees()
 
