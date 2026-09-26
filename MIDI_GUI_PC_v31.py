@@ -352,8 +352,8 @@ class App:
         self.root.bind('<Command-t>',self.shortcut_add_track)
         self.root.bind('<Control-t>',self.shortcut_add_track)
         self.root.title('Bass MIDI GUI PC v31')
-        self.root.geometry('1800x900')
-        self.root.minsize(1250,650)
+        self.root.geometry('1440x900')
+        self.root.minsize(1180,650)
         self.data=[Bar() for _ in range(DEFAULT_BARS)]
         self.tracks=[{'no':1,'name':'JBR_01_','bpm':DEFAULT_BPM,'resolution':'4分音符','auto_low':'G2','auto_high':'F#3','bars':self.data}]
         self.current_track=0
@@ -1069,12 +1069,12 @@ class App:
         container.pack(fill='both',expand=True,padx=2,pady=4)
         self.widgets.append(container)
         # 右上: 選択中Bass入力のミラー表示。横スクロール外でも内容を確認・編集できる。
-        mirror=ttk.LabelFrame(container,text='選択中 Bass',padding=(6,4))
-        mirror.grid(row=0,column=1,sticky='ne',padx=(4,4),pady=(0,4))
+        mirror=ttk.LabelFrame(container,text='選択中 Bass',padding=(4,3))
+        mirror.grid(row=0,column=1,sticky='ne',padx=(2,2),pady=(0,3))
         self._bass_mirror_label_var=tk.StringVar(value='—')
         self._bass_mirror_value_var=tk.StringVar(value='')
         ttk.Label(mirror,textvariable=self._bass_mirror_label_var,font=('',11,'bold')).pack(side='left',padx=(0,6))
-        mirror_entry=ttk.Entry(mirror,textvariable=self._bass_mirror_value_var,width=7,justify='center',style='Bar.TEntry')
+        mirror_entry=ttk.Entry(mirror,textvariable=self._bass_mirror_value_var,width=5,justify='center',style='Bar.TEntry')
         mirror_entry.pack(side='left',ipadx=4,ipady=3)
         self._bass_mirror_entry=mirror_entry
         self._bass_mirror_source_var=None
@@ -1093,7 +1093,7 @@ class App:
         tk.Label(legend,text='● Keyから見た度数',fg='green',font=('',14,'bold')).pack(side='left',padx=(0,18))
         tk.Label(legend,text='● コードルートから見た度数',fg='purple',font=('',14,'bold')).pack(side='left')
         for c in range(2):
-            container.columnconfigure(c,weight=1,uniform='barcols',minsize=760)
+            container.columnconfigure(c,weight=1,uniform='barcols',minsize=560)
         for pos,i in enumerate(range(start,end)):
             row=pos//2+1
             col=pos%2
@@ -1232,7 +1232,7 @@ class App:
             refresh_chord_degrees()
 
         bass_outer=ttk.Frame(frame); bass_outer.grid(row=3,column=0,sticky='ew',padx=0,pady=(1,2))
-        ttk.Label(bass_outer,text='Bass',font=('',10,'bold')).pack(anchor='w',pady=(0,1))
+        ttk.Label(bass_outer,text='Bass',font=('',10,'bold')).pack(anchor='w',pady=(0,0))
         canvas=tk.Canvas(bass_outer,height=120,highlightthickness=0)
         hbar=ttk.Scrollbar(bass_outer,orient='horizontal',command=canvas.xview); canvas.configure(xscrollcommand=hbar.set)
         canvas.pack(fill='x',expand=True); hbar.pack(fill='x')
@@ -1313,6 +1313,17 @@ class App:
                 ).pack(side='left',padx=(2,0))
 
                 segments=[(idx,x) for idx,x in enumerate(b.bass_grid) if int(x.get('base_slot',-1))==slot]
+                total_segments=max(1,len(b.bass_grid))
+                # 細分化が進むほどセルを少し圧縮。極端に潰れない範囲で段階調整。
+                if total_segments<=8:
+                    note_width=2; label_font=9; degree_widths=(2,3); btn_scale=1.0
+                elif total_segments<=12:
+                    note_width=2; label_font=8; degree_widths=(2,2); btn_scale=0.92
+                elif total_segments<=16:
+                    note_width=1; label_font=8; degree_widths=(1,2); btn_scale=0.85
+                else:
+                    note_width=1; label_font=7; degree_widths=(1,1); btn_scale=0.78
+
                 for local,(idx,item) in enumerate(segments):
                     cell=tk.Frame(group,bg='white',bd=0,highlightthickness=0)
                     cell.grid(row=0,column=local,padx=0,pady=0,sticky='n')
@@ -1322,17 +1333,17 @@ class App:
                     if full_label!=base_label:
                         child_head=tk.Frame(cell,bg='white')
                         child_head.pack(pady=0)
-                        tk.Label(child_head,text=full_label,font=('',9),bg='white').pack(side='left')
+                        tk.Label(child_head,text=full_label,font=('',label_font),bg='white').pack(side='left')
                         tk.Label(
                             child_head,
                             text=bass_note_value_symbol(item,effective_res),
-                            font=('',9,'bold'),
+                            font=('',label_font,'bold'),
                             fg='#d94b72',
                             bg='white'
                         ).pack(side='left',padx=(2,0))
 
                     vr=tk.StringVar(value=item.get('note',''))
-                    ent=ttk.Entry(cell,textvariable=vr,width=2,justify='center',style='Bar.TEntry')
+                    ent=ttk.Entry(cell,textvariable=vr,width=note_width,justify='center',style='Bar.TEntry')
                     ent.pack(pady=0,ipadx=3,ipady=2)
                     ent.bind('<Return>',lambda e,v=vr:self.normalize_entry(v))
                     ent.bind('<FocusOut>',lambda e,v=vr:self.normalize_entry(v))
@@ -1364,17 +1375,20 @@ class App:
                         cv.bind('<Button-1>',lambda e:command())
                         return holder
 
-                    tiny_button(btns,'2',lambda i=idx:self.split_bass_cell(b,i,2,rebuild_bass_grid),w=17,h=22,font_size=14,hit_pad=7)
-                    tiny_button(btns,'3',lambda i=idx:self.split_bass_cell(b,i,3,rebuild_bass_grid),w=17,h=22,font_size=14,hit_pad=7)
+                    bw=max(12,round(16*btn_scale))
+                    bh=max(18,round(22*btn_scale))
+                    bf=max(11,round(14*btn_scale))
+                    tiny_button(btns,'2',lambda i=idx:self.split_bass_cell(b,i,2,rebuild_bass_grid),w=bw,h=bh,font_size=bf,hit_pad=10)
+                    tiny_button(btns,'3',lambda i=idx:self.split_bass_cell(b,i,3,rebuild_bass_grid),w=bw,h=bh,font_size=bf,hit_pad=10)
 
                     can_merge=bool(item.get('divisions',[]))
                     if can_merge:
                         tiny_button(btns,'-',lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid),w=10,h=16,font_size=11,hit_pad=2)
 
                     degrees=tk.Frame(cell,bg='white'); degrees.pack(pady=0)
-                    dgk=tk.Label(degrees,text='',fg='green',bg='white',width=2,anchor='e',font=('',14,'bold'))
+                    dgk=tk.Label(degrees,text='',fg='green',bg='white',width=degree_widths[0],anchor='e',font=('',14,'bold'))
                     dgk.pack(side='left',padx=(2,0),pady=0)
-                    dgc=tk.Label(degrees,text='',fg='purple',bg='white',width=3,anchor='w',font=('',14,'bold'))
+                    dgc=tk.Label(degrees,text='',fg='purple',bg='white',width=degree_widths[1],anchor='w',font=('',14,'bold'))
                     dgc.pack(side='left',padx=(0,0),pady=0)
                     for target in (degrees,dgk,dgc):
                         target.bind('<Button-1>',lambda e,w=ent:w.focus_set())
