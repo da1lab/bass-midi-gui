@@ -45,6 +45,12 @@ class Bar:
         self.octave_1_2=3
         self.chord_3_4=''
         self.octave_3_4=3
+        self.split_1_2=False
+        self.split_3_4=False
+        self.chord_1=''; self.octave_1=3
+        self.chord_2=''; self.octave_2=3
+        self.chord_3=''; self.octave_3=3
+        self.chord_4=''; self.octave_4=3
         self.resolution=''  # 空欄ならTrackの分解能を継承
         self.bass=[]
 
@@ -878,108 +884,108 @@ class App:
     def build_bar(self,parent,index,b,row,col):
         frame=ttk.LabelFrame(parent,text=f'小節 {index+1}',style='Bar.TLabelframe')
         frame.grid(row=row,column=col,sticky='nsew',padx=2,pady=2)
-        key=tk.StringVar(value=b.key)
-        self.visible_key_vars.append((b,key))
+        key=tk.StringVar(value=b.key); self.visible_key_vars.append((b,key))
         split=tk.BooleanVar(value=b.split)
-        chord=tk.StringVar(value=b.chord)
-        c12=tk.StringVar(value=b.chord_1_2)
-        c34=tk.StringVar(value=b.chord_3_4)
-        chord_oct=tk.IntVar(value=b.octave)
-        oct12=tk.IntVar(value=b.octave_1_2)
-        oct34=tk.IntVar(value=b.octave_3_4)
+        split12=tk.BooleanVar(value=getattr(b,'split_1_2',False))
+        split34=tk.BooleanVar(value=getattr(b,'split_3_4',False))
+        chord=tk.StringVar(value=b.chord); c12=tk.StringVar(value=b.chord_1_2); c34=tk.StringVar(value=b.chord_3_4)
+        c1=tk.StringVar(value=getattr(b,'chord_1','')); c2=tk.StringVar(value=getattr(b,'chord_2',''))
+        c3=tk.StringVar(value=getattr(b,'chord_3','')); c4=tk.StringVar(value=getattr(b,'chord_4',''))
+        chord_oct=tk.IntVar(value=b.octave); oct12=tk.IntVar(value=b.octave_1_2); oct34=tk.IntVar(value=b.octave_3_4)
+        oct1=tk.IntVar(value=getattr(b,'octave_1',3)); oct2=tk.IntVar(value=getattr(b,'octave_2',3))
+        oct3=tk.IntVar(value=getattr(b,'octave_3',3)); oct4=tk.IntVar(value=getattr(b,'octave_4',3))
         bar_res=tk.StringVar(value=b.resolution or 'Track')
 
-        key_row=ttk.Frame(frame)
-        key_row.grid(row=0,column=0,sticky='w',padx=4,pady=(2,1))
+        key_row=ttk.Frame(frame); key_row.grid(row=0,column=0,sticky='w',padx=3,pady=(2,1))
         ttk.Label(key_row,text='Key',style='BarLabel.TLabel').pack(side='left')
         key_box=ttk.Combobox(key_row,textvariable=key,values=KEYS,state='readonly',width=5,takefocus=False,style='Bar.TCombobox')
-        key_box.pack(side='left',padx=(2,4))
-        ttk.Button(key_row,text='#/♭',width=5,command=lambda idx=index:self.toggle_bar_accidental(idx)).pack(side='left',padx=(1,4))
-        ttk.Label(key_row,text='分解能',style='BarLabel.TLabel').pack(side='left',padx=(3,1))
-        bar_res_box=ttk.Combobox(key_row,textvariable=bar_res,values=['Track']+list(RESOLUTIONS.keys()),state='readonly',width=8,takefocus=False)
-        bar_res_box.pack(side='left',padx=(1,4))
+        key_box.pack(side='left',padx=(2,3))
+        ttk.Button(key_row,text='#/♭',width=4,command=lambda idx=index:self.toggle_bar_accidental(idx)).pack(side='left',padx=(0,3))
+        ttk.Label(key_row,text='分解能',style='BarLabel.TLabel').pack(side='left',padx=(2,1))
+        bar_res_box=ttk.Combobox(key_row,textvariable=bar_res,values=['Track']+list(RESOLUTIONS.keys()),state='readonly',width=7,takefocus=False)
+        bar_res_box.pack(side='left',padx=(1,2))
 
-        chord_row=ttk.Frame(frame)
-        chord_row.grid(row=1,column=0,sticky='w',padx=4,pady=1)
-        ttk.Label(chord_row,text='Chord',style='BarLabel.TLabel').pack(side='left')
+        # 分割操作は独立した次段へ。親分割OFF時は子分割を表示しない。
+        split_row=ttk.Frame(frame); split_row.grid(row=1,column=0,sticky='w',padx=3,pady=(0,1))
+        split_cb=ttk.Checkbutton(split_row,text='2拍分割',variable=split,takefocus=False)
+        split_cb.pack(side='left')
+        child_split_holder=ttk.Frame(split_row); child_split_holder.pack(side='left',padx=(5,0))
+        split12_cb=ttk.Checkbutton(child_split_holder,text='1-2拍を1拍分割',variable=split12,takefocus=False)
+        split34_cb=ttk.Checkbutton(child_split_holder,text='3-4拍を1拍分割',variable=split34,takefocus=False)
 
-        def make_chord_input(parent_row,label,var,oct_var):
-            ttk.Label(parent_row,text=label,style='BarLabel.TLabel').pack(side='left',padx=(3,1))
-            box=ttk.Combobox(parent_row,textvariable=var,values=CHORDS,width=9,height=18,takefocus=True,style='Bar.TCombobox',state='readonly')
-            box.pack(side='left',padx=(0,2),pady=2)
+        chord_row=ttk.Frame(frame); chord_row.grid(row=2,column=0,sticky='w',padx=3,pady=(1,2))
+        ttk.Label(chord_row,text='Chord',style='BarLabel.TLabel').grid(row=0,column=0,sticky='nw',padx=(0,2),pady=2)
+        chord_area=ttk.Frame(chord_row); chord_area.grid(row=0,column=1,sticky='w')
+        degree_labels=[]
+
+        def chord_unit(parent,col,label,var,oct_var):
+            unit=ttk.Frame(parent); unit.grid(row=0,column=col,sticky='n',padx=1)
+            if label: ttk.Label(unit,text=label,font=('',9)).pack()
+            line=ttk.Frame(unit); line.pack()
+            # 旧 width=9 の50%以下。4なら約44%。
+            box=ttk.Combobox(line,textvariable=var,values=CHORDS,width=4,height=18,takefocus=True,style='Bar.TCombobox',state='readonly')
+            box.pack(side='left',padx=(0,1),pady=(0,1))
+            ttk.Spinbox(line,from_=0,to=8,textvariable=oct_var,width=2,takefocus=False).pack(side='left')
+            dg=ttk.Label(unit,text='',foreground='blue',anchor='center',font=('',12,'bold'))
+            dg.pack(pady=(0,1))
+            degree_labels.append((var,dg))
             box.bind('<KeyRelease>',lambda e,v=var:self.normalize_chord_var(v))
             box.bind('<Return>',lambda e,v=var:self.normalize_chord_var(v))
             box.bind('<FocusOut>',lambda e,v=var:self.normalize_chord_var(v))
             box.bind('<<ComboboxSelected>>',lambda e,v=var:self.normalize_chord_var(v))
-            ttk.Spinbox(parent_row,from_=0,to=8,textvariable=oct_var,width=3,takefocus=False).pack(side='left',padx=(0,2))
-            self.input_focus_widgets.append(box)
-            # ComboBox本体を大きくし、隣接する空き部分からもフォーカスしやすくする。
             box.bind('<Button-1>',lambda e,w=box:w.focus_set(),add='+')
-            return box
+            self.input_focus_widgets.append(box)
 
-        if not b.split:
-            make_chord_input(chord_row,'',chord,chord_oct)
-            chord_degree_label=ttk.Label(chord_row,text='',foreground='blue',width=9,font=('',16,'bold'))
-            chord_degree_label.pack(side='left',padx=3)
-        else:
-            make_chord_input(chord_row,'1-2拍',c12,oct12)
-            make_chord_input(chord_row,'3-4拍',c34,oct34)
-            chord_degree_label=ttk.Label(chord_row,text='',foreground='blue',width=11,font=('',16,'bold'))
-            chord_degree_label.pack(side='left',padx=3)
+        def rebuild_chords():
+            for w in chord_area.winfo_children(): w.destroy()
+            degree_labels.clear()
+            if not split.get():
+                chord_unit(chord_area,0,'',chord,chord_oct)
+            else:
+                colx=0
+                if split12.get():
+                    chord_unit(chord_area,colx,'1拍',c1,oct1); colx+=1
+                    chord_unit(chord_area,colx,'2拍',c2,oct2); colx+=1
+                else:
+                    chord_unit(chord_area,colx,'1-2拍',c12,oct12); colx+=1
+                if split34.get():
+                    chord_unit(chord_area,colx,'3拍',c3,oct3); colx+=1
+                    chord_unit(chord_area,colx,'4拍',c4,oct4)
+                else:
+                    chord_unit(chord_area,colx,'3-4拍',c34,oct34)
+            refresh_chord_degrees()
 
-        ttk.Checkbutton(key_row,text='2拍分割',variable=split,takefocus=False).pack(side='left',padx=3)
-
-        bass_row=ttk.Frame(frame)
-        bass_row.grid(row=2,column=0,sticky='w',padx=2,pady=(3,5))
+        bass_row=ttk.Frame(frame); bass_row.grid(row=3,column=0,sticky='w',padx=2,pady=(2,4))
         effective_res=b.resolution if b.resolution in RESOLUTIONS else self.res_var.get()
-        sub=RESOLUTIONS[effective_res]
-        count=sub*BEATS_PER_BAR
-        while len(b.bass)<count:
-            b.bass.append('')
-        bass=[]
-        bass_key_labels=[]
-        bass_chord_labels=[]
-        # 1行あたり最大8音。16分/32分では自動的に2行/4行へ折り返す。
+        sub=RESOLUTIONS[effective_res]; count=sub*BEATS_PER_BAR
+        while len(b.bass)<count: b.bass.append('')
+        bass=[]; bass_key_labels=[]; bass_chord_labels=[]
         cells_per_row=8
         for i in range(count):
-            wrap_row=i//cells_per_row
-            wrap_col=i%cells_per_row
+            wrap_row=i//cells_per_row; wrap_col=i%cells_per_row
             if wrap_col==0:
-                ttk.Label(bass_row,text='Bass' if wrap_row==0 else '',font=('',11,'bold')).grid(
-                    row=wrap_row,column=0,padx=(0,2),sticky='nw')
-            cell=ttk.Frame(bass_row)
-            cell.grid(row=wrap_row,column=wrap_col+1,padx=0,pady=(0,2),sticky='n')
-            sv=tk.StringVar(value=b.bass[i])
-            beat=i//sub+1
-            subdivision=i%sub+1
+                ttk.Label(bass_row,text='Bass' if wrap_row==0 else '',font=('',11,'bold')).grid(row=wrap_row,column=0,padx=(0,2),sticky='nw')
+            cell=ttk.Frame(bass_row); cell.grid(row=wrap_row,column=wrap_col+1,padx=0,pady=(0,2),sticky='n')
+            sv=tk.StringVar(value=b.bass[i]); beat=i//sub+1; subdivision=i%sub+1
             pos_text=str(beat) if sub==1 else f'{beat}.{subdivision}'
-            pos_label=ttk.Label(cell,text=pos_text,font=('',9))
-            pos_label.pack(pady=(0,1))
-            # 従来 width=5 → width=3（約60%）
-            entry=ttk.Entry(cell,textvariable=sv,width=3,justify='center',takefocus=True,style='Bar.TEntry')
-            entry.pack(pady=(1,1))
-            dg_key=ttk.Label(cell,text='',foreground='green',width=3,anchor='center',font=('',13,'bold'))
-            dg_key.pack()
-            dg_chord=ttk.Label(cell,text='',foreground='purple',width=4,anchor='center',font=('',13,'bold'))
-            dg_chord.pack()
-            # 入力欄周辺もクリック領域として使う。
+            pos_label=ttk.Label(cell,text=pos_text,font=('',9)); pos_label.pack(pady=(0,1))
+            entry=ttk.Entry(cell,textvariable=sv,width=3,justify='center',takefocus=True,style='Bar.TEntry'); entry.pack(pady=(1,1))
+            dg_key=ttk.Label(cell,text='',foreground='green',width=3,anchor='center',font=('',13,'bold')); dg_key.pack()
+            dg_chord=ttk.Label(cell,text='',foreground='purple',width=4,anchor='center',font=('',13,'bold')); dg_chord.pack()
             focus_bass=lambda e,w=entry:w.focus_set()
-            cell.bind('<Button-1>',focus_bass)
-            pos_label.bind('<Button-1>',focus_bass)
-            dg_key.bind('<Button-1>',focus_bass)
-            dg_chord.bind('<Button-1>',focus_bass)
+            for w in (cell,pos_label,dg_key,dg_chord): w.bind('<Button-1>',focus_bass)
             self.input_focus_widgets.append(entry)
-            entry.bind('<Return>',lambda e,v=sv:self.normalize_entry(v))
-            entry.bind('<FocusOut>',lambda e,v=sv:self.normalize_entry(v))
-            bass.append(sv)
-            bass_key_labels.append(dg_key)
-            bass_chord_labels.append(dg_chord)
+            entry.bind('<Return>',lambda e,v=sv:self.normalize_entry(v)); entry.bind('<FocusOut>',lambda e,v=sv:self.normalize_entry(v))
+            bass.append(sv); bass_key_labels.append(dg_key); bass_chord_labels.append(dg_chord)
 
         def current_chord(i):
-            if not split.get():
-                return chord.get()
-            current_sub=sub
-            return c12.get() if i<2*current_sub else c34.get()
+            if not split.get(): return chord.get()
+            beat=i//sub+1
+            if beat<=2:
+                if split12.get(): return c1.get() if beat==1 else c2.get()
+                return c12.get()
+            if split34.get(): return c3.get() if beat==3 else c4.get()
+            return c34.get()
 
         def refresh_bass_degrees():
             for i,sv in enumerate(bass):
@@ -987,61 +993,69 @@ class App:
                 bass_key_labels[i].config(text=degree(raw,key.get()))
                 bass_chord_labels[i].config(text=chord_interval(raw,current_chord(i)))
 
-        def refresh_chord_degree(*args):
-            if not split.get():
-                text=chord_degree(chord.get(),key.get())
-            else:
-                text=f'{chord_degree(c12.get(),key.get())} / {chord_degree(c34.get(),key.get())}'
-            chord_degree_label.config(text=text)
+        def refresh_chord_degrees(*args):
+            for var,dg in degree_labels: dg.config(text=chord_degree(var.get(),key.get()))
             refresh_bass_degrees()
 
-        for var in (chord,c12,c34,key):
-            var.trace_add('write',refresh_chord_degree)
-        for sv in bass:
-            sv.trace_add('write',lambda *args:refresh_bass_degrees())
-
         def apply_bar_controls():
-            b.key=key.get()
-            b.split=split.get()
-            b.chord=chord.get().strip()
-            b.octave=chord_oct.get()
-            b.chord_1_2=c12.get().strip()
-            b.octave_1_2=oct12.get()
-            b.chord_3_4=c34.get().strip()
-            b.octave_3_4=oct34.get()
+            b.key=key.get(); b.split=split.get()
+            b.split_1_2=split12.get() if split.get() else False
+            b.split_3_4=split34.get() if split.get() else False
+            b.chord=chord.get().strip(); b.octave=chord_oct.get()
+            b.chord_1_2=c12.get().strip(); b.octave_1_2=oct12.get()
+            b.chord_3_4=c34.get().strip(); b.octave_3_4=oct34.get()
+            b.chord_1=c1.get().strip(); b.octave_1=oct1.get()
+            b.chord_2=c2.get().strip(); b.octave_2=oct2.get()
+            b.chord_3=c3.get().strip(); b.octave_3=oct3.get()
+            b.chord_4=c4.get().strip(); b.octave_4=oct4.get()
             b.resolution='' if bar_res.get()=='Track' else bar_res.get()
             b.bass=[sv.get().strip() for sv in bass]
 
         self.committers.append(apply_bar_controls)
 
-        def key_changed(event=None):
-            b.key=key.get()
-            refresh_chord_degree()
+        def update_split_visibility():
+            if split.get():
+                split12_cb.pack(side='left',padx=(0,4)); split34_cb.pack(side='left')
+            else:
+                split12_cb.pack_forget(); split34_cb.pack_forget()
+            rebuild_chords()
 
         def split_changed():
-            apply_bar_controls()
-            self.render()
-
-        key_box.bind('<<ComboboxSelected>>',key_changed)
+            apply_bar_controls(); update_split_visibility()
+        def child_split_changed():
+            apply_bar_controls(); rebuild_chords()
+        def key_changed(event=None):
+            b.key=key.get(); refresh_chord_degrees()
         def bar_resolution_changed(event=None):
             apply_bar_controls(); self.render()
-        bar_res_box.bind('<<ComboboxSelected>>',bar_resolution_changed)
-        for child in key_row.winfo_children():
-            if isinstance(child,ttk.Checkbutton):
-                child.configure(command=split_changed)
 
-        refresh_chord_degree()
+        split_cb.configure(command=split_changed); split12_cb.configure(command=child_split_changed); split34_cb.configure(command=child_split_changed)
+        key_box.bind('<<ComboboxSelected>>',key_changed); bar_res_box.bind('<<ComboboxSelected>>',bar_resolution_changed)
+        for var in (chord,c12,c34,c1,c2,c3,c4,key): var.trace_add('write',refresh_chord_degrees)
+        for sv in bass: sv.trace_add('write',lambda *args:refresh_bass_degrees())
+        update_split_visibility()
+        refresh_chord_degrees()
 
     def bar_to_dict(self,b):
         return {'key':b.key,'accidental':getattr(b,'accidental','sharp'),'split':b.split,'chord':b.chord,'octave':b.octave,
-            'chord_1_2':b.chord_1_2,'octave_1_2':b.octave_1_2,'chord_3_4':b.chord_3_4,
-            'octave_3_4':b.octave_3_4,'resolution':b.resolution,'bass':list(b.bass)}
+            'chord_1_2':b.chord_1_2,'octave_1_2':b.octave_1_2,'chord_3_4':b.chord_3_4,'octave_3_4':b.octave_3_4,
+            'split_1_2':getattr(b,'split_1_2',False),'split_3_4':getattr(b,'split_3_4',False),
+            'chord_1':getattr(b,'chord_1',''),'octave_1':getattr(b,'octave_1',3),
+            'chord_2':getattr(b,'chord_2',''),'octave_2':getattr(b,'octave_2',3),
+            'chord_3':getattr(b,'chord_3',''),'octave_3':getattr(b,'octave_3',3),
+            'chord_4':getattr(b,'chord_4',''),'octave_4':getattr(b,'octave_4',3),
+            'resolution':b.resolution,'bass':list(b.bass)}
 
     def dict_to_bar(self,item):
         b=Bar(); b.key=item.get('key','C')
         b.accidental=item.get('accidental','sharp') or 'sharp'; b.split=bool(item.get('split',False)); b.chord=item.get('chord','')
         b.octave=int(item.get('octave',3)); b.chord_1_2=item.get('chord_1_2',''); b.octave_1_2=int(item.get('octave_1_2',3))
-        b.chord_3_4=item.get('chord_3_4',''); b.octave_3_4=int(item.get('octave_3_4',3)); b.resolution=item.get('resolution','') or ''
+        b.chord_3_4=item.get('chord_3_4',''); b.octave_3_4=int(item.get('octave_3_4',3))
+        b.split_1_2=bool(item.get('split_1_2',False)); b.split_3_4=bool(item.get('split_3_4',False))
+        for n in range(1,5):
+            setattr(b,f'chord_{n}',item.get(f'chord_{n}',''))
+            setattr(b,f'octave_{n}',int(item.get(f'octave_{n}',3)))
+        b.resolution=item.get('resolution','') or ''
         bass=item.get('bass',[])
         b.bass=['' if x is None else str(x) for x in bass] if isinstance(bass,list) else []
         return b
@@ -1279,7 +1293,7 @@ class App:
     def last_bar(self):
         last=-1
         for i,b in enumerate(self.data):
-            has_chord=bool(b.chord.strip() or b.chord_1_2.strip() or b.chord_3_4.strip())
+            has_chord=bool(b.chord.strip() or b.chord_1_2.strip() or b.chord_3_4.strip() or any(getattr(b,f'chord_{n}','').strip() for n in range(1,5)))
             has_bass=any(x.strip() and x.strip()!='-' for x in b.bass)
             if has_chord or has_bass:
                 last=i
@@ -1359,27 +1373,28 @@ class App:
 
         for bar_index in range(last+1):
             b=self.data[bar_index]
-            if not b.split:
-                notes=chord_notes(b.chord,b.octave)
+            def append_chord_segment(chord_text,octv,beats):
+                notes=chord_notes(chord_text,octv)
+                duration=TICKS_PER_BEAT*beats
                 if notes:
-                    for n in notes:
-                        chord_track.append(Message('note_on',note=n,velocity=70,time=0))
-                    chord_track.append(Message('note_off',note=notes[0],velocity=0,time=TICKS_PER_BEAT*4))
-                    for n in notes[1:]:
-                        chord_track.append(Message('note_off',note=n,velocity=0,time=0))
+                    for n in notes: chord_track.append(Message('note_on',note=n,velocity=70,time=0))
+                    chord_track.append(Message('note_off',note=notes[0],velocity=0,time=duration))
+                    for n in notes[1:]: chord_track.append(Message('note_off',note=n,velocity=0,time=0))
                 else:
-                    chord_track.append(Message('note_off',note=0,velocity=0,time=TICKS_PER_BEAT*4))
+                    chord_track.append(Message('note_off',note=0,velocity=0,time=duration))
+            if not b.split:
+                append_chord_segment(b.chord,b.octave,4)
             else:
-                for chord,octv in [(b.chord_1_2,b.octave_1_2),(b.chord_3_4,b.octave_3_4)]:
-                    notes=chord_notes(chord,octv)
-                    if notes:
-                        for n in notes:
-                            chord_track.append(Message('note_on',note=n,velocity=70,time=0))
-                        chord_track.append(Message('note_off',note=notes[0],velocity=0,time=TICKS_PER_BEAT*2))
-                        for n in notes[1:]:
-                            chord_track.append(Message('note_off',note=n,velocity=0,time=0))
-                    else:
-                        chord_track.append(Message('note_off',note=0,velocity=0,time=TICKS_PER_BEAT*2))
+                if getattr(b,'split_1_2',False):
+                    append_chord_segment(getattr(b,'chord_1',''),getattr(b,'octave_1',3),1)
+                    append_chord_segment(getattr(b,'chord_2',''),getattr(b,'octave_2',3),1)
+                else:
+                    append_chord_segment(b.chord_1_2,b.octave_1_2,2)
+                if getattr(b,'split_3_4',False):
+                    append_chord_segment(getattr(b,'chord_3',''),getattr(b,'octave_3',3),1)
+                    append_chord_segment(getattr(b,'chord_4',''),getattr(b,'octave_4',3),1)
+                else:
+                    append_chord_segment(b.chord_3_4,b.octave_3_4,2)
 
             sub=RESOLUTIONS[b.resolution] if b.resolution in RESOLUTIONS else RESOLUTIONS[self.res_var.get()]
             ticks_per_note=TICKS_PER_BEAT//sub
