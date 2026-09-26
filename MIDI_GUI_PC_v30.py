@@ -238,10 +238,49 @@ def make_bass_grid_from_legacy(values,res_name):
     vals=list(values or [])
     while len(vals)<slots:vals.append('')
     vals=vals[:slots]
-    return [{'note':str(v or ''),'units':2} for v in vals]
+    return [{'note':str(v or ''),'slot':i,'level':0} for i,v in enumerate(vals)]
 
-def bass_grid_total_units(grid):
-    return sum(max(1,int(x.get('units',1))) for x in grid)
+def normalize_bass_grid(grid,res_name):
+    """旧v30 units形式も、親スロット(slot)+分割階層(level)形式へ変換する。"""
+    slots=RESOLUTIONS.get(res_name,1)*BEATS_PER_BAR
+    if not isinstance(grid,list) or not grid:
+        return make_bass_grid_from_legacy([],res_name)
+    if all(isinstance(x,dict) and 'slot' in x and 'level' in x for x in grid):
+        out=[]
+        for x in grid:
+            slot=max(0,min(slots-1,int(x.get('slot',0))))
+            level=max(0,min(6,int(x.get('level',0))))
+            out.append({'note':str(x.get('note','')),'slot':slot,'level':level})
+        return out
+    # 旧 units 形式: base cell=2 units として、2 unitsごとに1親スロットへ割り当てる。
+    out=[]; slot=0; used=0
+    for x in grid:
+        if not isinstance(x,dict) or slot>=slots:continue
+        units=max(1,int(x.get('units',2)))
+        if units>=2:level=0
+        else:level=1
+        out.append({'note':str(x.get('note','')),'slot':slot,'level':level})
+        used+=units
+        while used>=2:
+            used-=2
+            slot+=1
+            if slot>=slots:break
+    existing={x['slot'] for x in out}
+    for i in range(slots):
+        if i not in existing:out.append({'note':'','slot':i,'level':0})
+    out.sort(key=lambda x:x['slot'])
+    return out
+
+def bass_grid_slot_label(slot,res_name):
+    sub=RESOLUTIONS.get(res_name,1)
+    beat=slot//sub+1
+    subpos=slot%sub+1
+    return f'{beat}拍' if sub==1 else f'{beat}.{subpos}'
+
+def bass_grid_duration_ticks(level,res_name):
+    sub=RESOLUTIONS.get(res_name,1)
+    base_ticks=TICKS_PER_BEAT/sub
+    return max(1,round(base_ticks/(2**max(0,int(level)))))
 
 class App:
     def __init__(self,root):
@@ -277,6 +316,7 @@ class App:
         style.configure('BarBold.TLabel',font=('',11,'bold'))
         style.configure('Bar.TCombobox',font=('',11),padding=(4,5,4,5))
         style.configure('Bar.TEntry',font=('',11),padding=(4,5,4,5))
+        style.configure('BassMini.TButton',padding=(1,1),font=('',8))
         self.build_top()
         self.render()
 
@@ -1075,11 +1115,15 @@ class App:
 
         effective_res=b.resolution if b.resolution in RESOLUTIONS else self.res_var.get()
         if not getattr(b,'bass_grid',None):
-            b.bass_grid=make_bass_grid_from_legacy(b.bass,effective_res); b.bass_grid_base=effective_res
+            b.bass_grid=make_bass_grid_from_legacy(b.bass,effective_res)
+        else:
+            b.bass_grid=normalize_bass_grid(b.bass_grid,effective_res)
+        b.bass_grid_base=effective_res
         bass_vars=[]; bass_key_labels=[]; bass_chord_labels=[]
 
-        def current_chord(position,total):
-            beat=min(4,int((position/max(1,total))*4)+1)
+        def current_chord_for_slot(slot):
+            sub=RESOLUTIONS.get(effective_res,1)
+            beat=slot//sub+1
             if not split.get():return chord.get()
             if beat<=2:return (c1.get() if beat==1 else c2.get()) if split12.get() else c12.get()
             return (c3.get() if beat==3 else c4.get()) if split34.get() else c34.get()
@@ -1087,28 +1131,39 @@ class App:
         def rebuild_bass_grid():
             for w in bass_host.winfo_children():w.destroy()
             bass_vars.clear(); bass_key_labels.clear(); bass_chord_labels.clear()
-            total=bass_grid_total_units(b.bass_grid); running=0
-            for i,item in enumerate(b.bass_grid):
-                cell=ttk.Frame(bass_host); cell.grid(row=i//8,column=i%8,padx=1,pady=1,sticky='n')
-                ttk.Label(cell,text=f'{i+1}',font=('',8)).pack()
-                vr=tk.StringVar(value=item.get('note',''))
-                ent=ttk.Entry(cell,textvariable=vr,width=3,justify='center',style='Bar.TEntry'); ent.pack()
-                btns=ttk.Frame(cell); btns.pack()
-                sb=ttk.Button(btns,text='÷2',width=3,command=lambda idx=i:self.split_bass_cell(b,idx,rebuild_bass_grid)); sb.pack(side='left')
-                if int(item.get('units',1))<=1:sb.state(['disabled'])
-                ttk.Button(btns,text='×',width=2,command=lambda idx=i:self.merge_bass_cell(b,idx,rebuild_bass_grid)).pack(side='left',padx=(1,0))
-                dgk=ttk.Label(cell,text='',foreground='green',width=3,anchor='center',font=('',11,'bold')); dgk.pack()
-                dgc=ttk.Label(cell,text='',foreground='purple',width=4,anchor='center',font=('',11,'bold')); dgc.pack()
-                bass_vars.append((i,vr,running)); bass_key_labels.append(dgk); bass_chord_labels.append(dgc); self.input_focus_widgets.append(ent)
-                running+=max(1,int(item.get('units',1)))
+            b.bass_grid=normalize_bass_grid(b.bass_grid,effective_res)
+            slots=RESOLUTIONS.get(effective_res,1)*BEATS_PER_BAR
+            # 親スロットを基準に表示。4分なら4枠、8分なら8枠。
+            parents_per_row=4
+            for slot in range(slots):
+                group=ttk.LabelFrame(bass_host,text=bass_grid_slot_label(slot,effective_res),padding=(2,2))
+                group.grid(row=slot//parents_per_row,column=slot%parents_per_row,padx=2,pady=2,sticky='nw')
+                segments=[(idx,x) for idx,x in enumerate(b.bass_grid) if int(x.get('slot',-1))==slot]
+                for local,(idx,item) in enumerate(segments):
+                    cell=ttk.Frame(group); cell.grid(row=0,column=local,padx=1,pady=0,sticky='n')
+                    vr=tk.StringVar(value=item.get('note',''))
+                    ent=ttk.Entry(cell,textvariable=vr,width=3,justify='center',style='Bar.TEntry'); ent.pack()
+                    ent.bind('<Return>',lambda e,v=vr:self.normalize_entry(v))
+                    ent.bind('<FocusOut>',lambda e,v=vr:self.normalize_entry(v))
+                    btns=ttk.Frame(cell); btns.pack()
+                    ttk.Button(btns,text='+',width=1,style='BassMini.TButton',
+                        command=lambda i=idx:self.split_bass_cell(b,i,rebuild_bass_grid)).pack(side='left')
+                    mb=ttk.Button(btns,text='×',width=1,style='BassMini.TButton',
+                        command=lambda i=idx:self.merge_bass_cell(b,i,rebuild_bass_grid))
+                    mb.pack(side='left',padx=(1,0))
+                    level=max(0,int(item.get('level',0)))
+                    if level==0:mb.state(['disabled'])
+                    dgk=ttk.Label(cell,text='',foreground='green',width=3,anchor='center',font=('',11,'bold')); dgk.pack()
+                    dgc=ttk.Label(cell,text='',foreground='purple',width=4,anchor='center',font=('',11,'bold')); dgc.pack()
+                    bass_vars.append((idx,vr,slot)); bass_key_labels.append(dgk); bass_chord_labels.append(dgc)
+                    self.input_focus_widgets.append(ent)
             refresh_bass_degrees()
 
         def refresh_bass_degrees():
-            total=bass_grid_total_units(b.bass_grid)
-            for n,(idx,vr,pos) in enumerate(bass_vars):
+            for n,(idx,vr,slot) in enumerate(bass_vars):
                 raw=vr.get().strip()
                 bass_key_labels[n].config(text=degree(raw,key.get()))
-                bass_chord_labels[n].config(text=chord_interval(raw,current_chord(pos,total)))
+                bass_chord_labels[n].config(text=chord_interval(raw,current_chord_for_slot(slot)))
 
         def refresh_chord_degrees(*args):
             for var,dg in degree_labels:dg.config(text=chord_degree(var.get(),key.get()))
@@ -1124,7 +1179,12 @@ class App:
             b.resolution='' if bar_res.get()=='Track' else bar_res.get()
             for idx,vr,_ in bass_vars:
                 if idx<len(b.bass_grid):b.bass_grid[idx]['note']=vr.get().strip()
-            b.bass=[x.get('note','') for x in b.bass_grid]
+            # 旧形式bassは親スロット先頭音のみを保持。編集の正本はbass_grid。
+            slots=RESOLUTIONS.get(effective_res,1)*BEATS_PER_BAR
+            b.bass=[]
+            for slot in range(slots):
+                segs=[x for x in b.bass_grid if int(x.get('slot',-1))==slot]
+                b.bass.append(segs[0].get('note','') if segs else '')
         self.committers.append(apply_bar_controls)
 
         def split_changed():
@@ -1137,7 +1197,7 @@ class App:
         def child_changed():apply_bar_controls(); rebuild_chords()
         def bar_res_changed(event=None):
             apply_bar_controls(); eff=bar_res.get() if bar_res.get() in RESOLUTIONS else self.res_var.get()
-            b.bass_grid=make_bass_grid_from_legacy([x.get('note','') for x in b.bass_grid],eff); b.bass_grid_base=eff; self.render()
+            b.bass_grid=make_bass_grid_from_legacy(b.bass,eff); b.bass_grid_base=eff; self.render()
 
         split_cb.configure(command=split_changed); split12_cb.configure(command=child_changed); split34_cb.configure(command=child_changed)
         bar_res_box.bind('<<ComboboxSelected>>',bar_res_changed)
@@ -1148,22 +1208,36 @@ class App:
         rebuild_chords(); rebuild_bass_grid(); refresh_chord_degrees()
 
     def split_bass_cell(self,b,idx,refresh=None):
+        """選択した音価だけを2分割。親スロットは変えない。"""
         grid=getattr(b,'bass_grid',[])
         if not (0<=idx<len(grid)):return
-        units=max(1,int(grid[idx].get('units',1)))
-        if units<=1:return
-        left=units//2; right=units-left; note=grid[idx].get('note','')
-        grid[idx:idx+1]=[{'note':note,'units':left},{'note':'','units':right}]
+        item=grid[idx]
+        level=max(0,int(item.get('level',0)))
+        if level>=6:return
+        slot=int(item.get('slot',0)); note=item.get('note','')
+        grid[idx:idx+1]=[
+            {'note':note,'slot':slot,'level':level+1},
+            {'note':'','slot':slot,'level':level+1}
+        ]
         if refresh:refresh()
 
     def merge_bass_cell(self,b,idx,refresh=None):
+        """同じ親スロット内の同階層の隣接兄弟だけを1段戻す。"""
         grid=getattr(b,'bass_grid',[])
-        if len(grid)<2 or not (0<=idx<len(grid)):return
-        if idx>0:left,right=idx-1,idx
-        else:left,right=0,1
+        if not (0<=idx<len(grid)):return
+        slot=int(grid[idx].get('slot',0)); level=max(0,int(grid[idx].get('level',0)))
+        if level<=0:return
+        candidates=[]
+        if idx>0:candidates.append((idx-1,idx))
+        if idx+1<len(grid):candidates.append((idx,idx+1))
+        pair=None
+        for left,right in candidates:
+            if int(grid[left].get('slot',-1))==slot and int(grid[right].get('slot',-1))==slot and int(grid[left].get('level',-1))==level and int(grid[right].get('level',-1))==level:
+                pair=(left,right); break
+        if pair is None:return
+        left,right=pair
         note=grid[left].get('note','') or grid[right].get('note','')
-        units=max(1,int(grid[left].get('units',1)))+max(1,int(grid[right].get('units',1)))
-        grid[left:right+1]=[{'note':note,'units':units}]
+        grid[left:right+1]=[{'note':note,'slot':slot,'level':level-1}]
         if refresh:refresh()
 
     def bar_to_dict(self,b):
@@ -1190,7 +1264,7 @@ class App:
         b.resolution=item.get('resolution','') or ''
         bass=item.get('bass',[]); b.bass=['' if x is None else str(x) for x in bass] if isinstance(bass,list) else []
         grid=item.get('bass_grid',[])
-        b.bass_grid=[{'note':str(x.get('note','')),'units':max(1,int(x.get('units',1)))} for x in grid if isinstance(x,dict)] if isinstance(grid,list) else []
+        b.bass_grid=copy.deepcopy(grid) if isinstance(grid,list) else []
         b.bass_grid_base=item.get('bass_grid_base','') or ''
         return b
 
@@ -1533,23 +1607,24 @@ class App:
             effective_res=b.resolution if b.resolution in RESOLUTIONS else self.res_var.get()
             grid=getattr(b,'bass_grid',[])
             if grid:
-                base_sub=RESOLUTIONS.get(getattr(b,'bass_grid_base','') or effective_res,RESOLUTIONS[effective_res])
-                ticks_per_unit=max(1,TICKS_PER_BEAT//base_sub//2)
+                grid=normalize_bass_grid(grid,effective_res)
                 i=0
                 while i<len(grid):
-                    raw=str(grid[i].get('note','')).strip(); units=max(1,int(grid[i].get('units',1)))
+                    raw=str(grid[i].get('note','')).strip()
+                    level=max(0,int(grid[i].get('level',0)))
+                    duration=bass_grid_duration_ticks(level,effective_res)
                     if raw=='-':
-                        bass_track.append(Message('note_off',note=0,velocity=0,channel=1,time=ticks_per_unit*units)); i+=1; continue
+                        bass_track.append(Message('note_off',note=0,velocity=0,channel=1,time=duration)); i+=1; continue
                     normalized=normalize_note(raw,self.auto_low_var.get(),self.auto_high_var.get())
                     n=auto_midi(normalized,self.auto_low_var.get(),self.auto_high_var.get()) if normalized else None
                     if n is not None:
-                        dur=units; j=i+1
+                        dur=duration; j=i+1
                         while j<len(grid) and str(grid[j].get('note','')).strip()=='-':
-                            dur+=max(1,int(grid[j].get('units',1))); j+=1
+                            dur+=bass_grid_duration_ticks(grid[j].get('level',0),effective_res); j+=1
                         bass_track.append(Message('note_on',note=n,velocity=80,channel=1,time=0))
-                        bass_track.append(Message('note_off',note=n,velocity=0,channel=1,time=ticks_per_unit*dur)); i=j
+                        bass_track.append(Message('note_off',note=n,velocity=0,channel=1,time=dur)); i=j
                     else:
-                        bass_track.append(Message('note_off',note=0,velocity=0,channel=1,time=ticks_per_unit*units)); i+=1
+                        bass_track.append(Message('note_off',note=0,velocity=0,channel=1,time=duration)); i+=1
             else:
                 sub=RESOLUTIONS[effective_res]; ticks_per_note=TICKS_PER_BEAT//sub
                 bass_values=list(b.bass)
