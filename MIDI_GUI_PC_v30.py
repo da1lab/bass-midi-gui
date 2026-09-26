@@ -1094,10 +1094,9 @@ class App:
 
         def chord_unit(parent,col,label,var,oct_var,onbass_var):
             unit=ttk.Frame(parent); unit.grid(row=0,column=col,sticky='n',padx=1)
-            head=ttk.Frame(unit); head.pack()
-            if label:ttk.Label(head,text=label,font=('',9)).pack(side='left',padx=(0,2))
-            dg=ttk.Label(head,text='',foreground='blue',anchor='center',font=('',12,'bold'))
-            dg.pack(side='left')
+            if label:ttk.Label(unit,text=label,font=('',9)).pack(pady=(0,0))
+            dg=ttk.Label(unit,text='',foreground='blue',anchor='center',font=('',13,'bold'))
+            dg.pack(pady=(0,0))
             line=ttk.Frame(unit); line.pack()
             box=ttk.Combobox(line,textvariable=var,values=CHORDS,width=4,height=18,takefocus=True,style='Bar.TCombobox',state='readonly'); box.pack(side='left',padx=(0,1))
             ttk.Spinbox(line,from_=0,to=8,textvariable=oct_var,width=2,takefocus=False).pack(side='left',padx=(0,1))
@@ -1125,7 +1124,7 @@ class App:
 
         bass_outer=ttk.Frame(frame); bass_outer.grid(row=3,column=0,sticky='ew',padx=2,pady=(1,2))
         ttk.Label(bass_outer,text='Bass',font=('',10,'bold')).pack(anchor='w',pady=(0,1))
-        canvas=tk.Canvas(bass_outer,height=190,highlightthickness=0)
+        canvas=tk.Canvas(bass_outer,height=180,highlightthickness=0)
         hbar=ttk.Scrollbar(bass_outer,orient='horizontal',command=canvas.xview); canvas.configure(xscrollcommand=hbar.set)
         canvas.pack(fill='x',expand=True); hbar.pack(fill='x')
         bass_host=ttk.Frame(canvas); win=canvas.create_window((0,0),window=bass_host,anchor='nw')
@@ -1183,13 +1182,13 @@ class App:
                     text=bass_grid_slot_label(slot,effective_res),
                     padding=(0,0)
                 )
-                group.grid(row=display_row,column=display_col,padx=1,pady=0,sticky='nw')
+                group.grid(row=display_row,column=display_col,padx=0,pady=0,sticky='nw')
                 segments=[(idx,x) for idx,x in enumerate(b.bass_grid) if int(x.get('slot',-1))==slot]
                 for local,(idx,item) in enumerate(segments):
                     cell=ttk.Frame(group)
                     cell.grid(row=0,column=local,padx=0,pady=0,sticky='n')
                     vr=tk.StringVar(value=item.get('note',''))
-                    ent=ttk.Entry(cell,textvariable=vr,width=3,justify='center',style='Bar.TEntry')
+                    ent=ttk.Entry(cell,textvariable=vr,width=2,justify='center',style='Bar.TEntry')
                     ent.pack(pady=0)
                     ent.bind('<Return>',lambda e,v=vr:self.normalize_entry(v))
                     ent.bind('<FocusOut>',lambda e,v=vr:self.normalize_entry(v))
@@ -1199,11 +1198,11 @@ class App:
                     def tiny_button(parent,text,command,enabled=True,is_plus=False):
                         # '+'だけ二回り大きく、'-'は従来サイズ。
                         if is_plus:
-                            w,h,font_size=18,20,16
-                            cx,cy=9,10
+                            w,h,font_size=15,20,16
+                            cx,cy=7.5,10
                         else:
-                            w,h,font_size=12,16,12
-                            cx,cy=6,8
+                            w,h,font_size=10,16,12
+                            cx,cy=5,8
                         cv=tk.Canvas(parent,width=w,height=h,highlightthickness=0,borderwidth=0)
                         cv.pack(side='left',padx=0,pady=0)
                         cv.create_rectangle(0,0,w-1,h-1)
@@ -1227,10 +1226,11 @@ class App:
 
                     degrees=ttk.Frame(cell)
                     degrees.pack(pady=0)
-                    dgk=ttk.Label(degrees,text='',foreground='green',width=3,anchor='center',font=('',14,'bold'))
-                    dgk.pack(side='left',pady=0)
-                    dgc=ttk.Label(degrees,text='',foreground='purple',width=4,anchor='center',font=('',14,'bold'))
-                    dgc.pack(side='left',pady=0)
+                    # 音名ボックス直下に緑＋紫を同一行。緑だけ少し右寄せ。
+                    dgk=ttk.Label(degrees,text='',foreground='green',width=2,anchor='e',font=('',14,'bold'))
+                    dgk.pack(side='left',padx=(2,0),pady=0)
+                    dgc=ttk.Label(degrees,text='',foreground='purple',width=3,anchor='w',font=('',14,'bold'))
+                    dgc.pack(side='left',padx=(0,0),pady=0)
                     bass_vars.append((idx,vr,slot))
                     bass_key_labels.append(dgk)
                     bass_chord_labels.append(dgc)
