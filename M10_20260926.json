@@ -1,0 +1,4188 @@
+{
+  "format": "bass-midi-gui-multitrack",
+  "format_version": 3,
+  "app": "Bass MIDI GUI PC",
+  "version": "31",
+  "project_name": "bass_project",
+  "visible_bars": 4,
+  "tracks": [
+    {
+      "no": 1,
+      "name": "M10_01_AB",
+      "bpm": 100,
+      "resolution": "8分音符",
+      "auto_low": "E3",
+      "auto_high": "D#4",
+      "bars": [
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": true,
+          "chord": "Dmaj7",
+          "octave": 3,
+          "chord_1_2": "Dmaj7",
+          "octave_1_2": 3,
+          "chord_3_4": "A",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "C#",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "bass_grid": [
+            {
+              "note": "",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 1,
+              "path": [
+                1,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 2,
+              "path": [
+                2,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 3,
+              "path": [
+                2,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 4,
+              "path": [
+                3,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 5,
+              "path": [
+                3,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 6,
+              "path": [
+                4,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 7,
+              "path": [
+                4,
+                2
+              ],
+              "divisions": []
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": true,
+          "chord": "A",
+          "octave": 3,
+          "chord_1_2": "Dmaj7",
+          "octave_1_2": 3,
+          "chord_3_4": "A",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "C#",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "bass_grid": [
+            {
+              "note": "",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 1,
+              "path": [
+                1,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 2,
+              "path": [
+                2,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 3,
+              "path": [
+                2,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 4,
+              "path": [
+                3,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 5,
+              "path": [
+                3,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 6,
+              "path": [
+                4,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 7,
+              "path": [
+                4,
+                2
+              ],
+              "divisions": []
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": true,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "Cmaj7",
+          "octave_1_2": 3,
+          "chord_3_4": "Bm7",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "bass_grid": [
+            {
+              "note": "",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 1,
+              "path": [
+                1,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 2,
+              "path": [
+                2,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 3,
+              "path": [
+                2,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 4,
+              "path": [
+                3,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 5,
+              "path": [
+                3,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 6,
+              "path": [
+                4,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 7,
+              "path": [
+                4,
+                2
+              ],
+              "divisions": []
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": true,
+          "chord": "Esus4",
+          "octave": 3,
+          "chord_1_2": "Esus4",
+          "octave_1_2": 3,
+          "chord_3_4": "E",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "D3"
+          ],
+          "bass_grid": [
+            {
+              "note": "",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 1,
+              "path": [
+                1,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 2,
+              "path": [
+                2,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 3,
+              "path": [
+                2,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 4,
+              "path": [
+                3,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 5,
+              "path": [
+                3,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 6,
+              "path": [
+                4,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "D3",
+              "base_slot": 7,
+              "path": [
+                4,
+                2
+              ],
+              "divisions": []
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": true,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "A",
+          "octave_1_2": 3,
+          "chord_3_4": "E",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "G#",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "8分音符",
+          "bass": [
+            "C#3",
+            "E3",
+            "A3",
+            "C#4",
+            "-",
+            "-",
+            "",
+            "C#4"
+          ],
+          "bass_grid": [
+            {
+              "note": "C#3",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "E3",
+              "base_slot": 1,
+              "path": [
+                1,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "A3",
+              "base_slot": 2,
+              "path": [
+                2,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "C#4",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "B3",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "-",
+              "base_slot": 4,
+              "path": [
+                3,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 5,
+              "path": [
+                3,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 6,
+              "path": [
+                4,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "C#4",
+              "base_slot": 7,
+              "path": [
+                4,
+                2
+              ],
+              "divisions": []
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": true,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "C#7",
+          "octave_1_2": 3,
+          "chord_3_4": "F#m",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "D4",
+            "C#4",
+            "B3",
+            "G#3",
+            "A3",
+            "-",
+            "",
+            "F#3"
+          ],
+          "bass_grid": [
+            {
+              "note": "D4",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "C#4",
+              "base_slot": 1,
+              "path": [
+                1,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "B3",
+              "base_slot": 2,
+              "path": [
+                2,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "G#3",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "G#3",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "A3",
+              "base_slot": 4,
+              "path": [
+                3,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 5,
+              "path": [
+                3,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 6,
+              "path": [
+                4,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "F#3",
+              "base_slot": 7,
+              "path": [
+                4,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "G#3",
+              "base_slot": 7,
+              "path": [
+                4,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": true,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "D",
+          "octave_1_2": 3,
+          "chord_3_4": "A",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "C#",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "A3",
+            "-",
+            "A3",
+            "B3",
+            "-",
+            "E3",
+            "",
+            "A3"
+          ],
+          "bass_grid": [
+            {
+              "note": "A3",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 1,
+              "path": [
+                1,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "A3",
+              "base_slot": 2,
+              "path": [
+                2,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "B3",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "A3",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "-",
+              "base_slot": 4,
+              "path": [
+                3,
+                1,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "E3",
+              "base_slot": 4,
+              "path": [
+                3,
+                1,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "E3",
+              "base_slot": 5,
+              "path": [
+                3,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "-",
+              "base_slot": 5,
+              "path": [
+                3,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "",
+              "base_slot": 6,
+              "path": [
+                4,
+                1,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "E3",
+              "base_slot": 6,
+              "path": [
+                4,
+                1,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "A3",
+              "base_slot": 7,
+              "path": [
+                4,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "C#4",
+              "base_slot": 7,
+              "path": [
+                4,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": true,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "B7",
+          "octave_1_2": 3,
+          "chord_3_4": "C#7",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "D#",
+          "on_bass_3_4": "E#",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "B3",
+            "-",
+            "A3",
+            "B3",
+            "-",
+            "-",
+            "",
+            "C#3"
+          ],
+          "bass_grid": [
+            {
+              "note": "B3",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 1,
+              "path": [
+                1,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "A3",
+              "base_slot": 2,
+              "path": [
+                2,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "B3",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "G#3",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "-",
+              "base_slot": 4,
+              "path": [
+                3,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 5,
+              "path": [
+                3,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 6,
+              "path": [
+                4,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "C#3",
+              "base_slot": 7,
+              "path": [
+                4,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "D3",
+              "base_slot": 7,
+              "path": [
+                4,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": true,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "F#m",
+          "octave_1_2": 3,
+          "chord_3_4": "C#7",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "E#",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "C#3",
+            "E3",
+            "A3",
+            "C#4",
+            "-",
+            "-",
+            "",
+            "D4"
+          ],
+          "bass_grid": [
+            {
+              "note": "C#3",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "E3",
+              "base_slot": 1,
+              "path": [
+                1,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "A3",
+              "base_slot": 2,
+              "path": [
+                2,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "C#4",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "B3",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "-",
+              "base_slot": 4,
+              "path": [
+                3,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 5,
+              "path": [
+                3,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 6,
+              "path": [
+                4,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "D4",
+              "base_slot": 7,
+              "path": [
+                4,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "C#4",
+              "base_slot": 7,
+              "path": [
+                4,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "flat",
+          "split": true,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "F#m",
+          "octave_1_2": 3,
+          "chord_3_4": "Ebm7b5",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "D4",
+            "C#4",
+            "B3",
+            "G#3",
+            "A3",
+            "-",
+            "",
+            "F#3"
+          ],
+          "bass_grid": [
+            {
+              "note": "D4",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "C#4",
+              "base_slot": 1,
+              "path": [
+                1,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "B3",
+              "base_slot": 2,
+              "path": [
+                2,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "G#3",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "G#3",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "A3",
+              "base_slot": 4,
+              "path": [
+                3,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 5,
+              "path": [
+                3,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 6,
+              "path": [
+                4,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "F#3",
+              "base_slot": 7,
+              "path": [
+                4,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "G#3",
+              "base_slot": 7,
+              "path": [
+                4,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": true,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "Dmaj7",
+          "octave_1_2": 3,
+          "chord_3_4": "E",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "A3",
+            "A3",
+            "-",
+            "-",
+            "-",
+            "E3",
+            "-",
+            "-"
+          ],
+          "bass_grid": [
+            {
+              "note": "A3",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "A3",
+              "base_slot": 1,
+              "path": [
+                1,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "A3",
+              "base_slot": 1,
+              "path": [
+                1,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "-",
+              "base_slot": 2,
+              "path": [
+                2,
+                1,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "C#4",
+              "base_slot": 2,
+              "path": [
+                2,
+                1,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "-",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "B3",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "-",
+              "base_slot": 4,
+              "path": [
+                3,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "E3",
+              "base_slot": 5,
+              "path": [
+                3,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "D4",
+              "base_slot": 5,
+              "path": [
+                3,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "-",
+              "base_slot": 6,
+              "path": [
+                4,
+                1,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "C#4",
+              "base_slot": 6,
+              "path": [
+                4,
+                1,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "-",
+              "base_slot": 7,
+              "path": [
+                4,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "B3",
+              "base_slot": 7,
+              "path": [
+                4,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": true,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "Asus4",
+          "octave_1_2": 3,
+          "chord_3_4": "A",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "-",
+            "G#3",
+            "A3",
+            "-",
+            "A3",
+            "-",
+            "-",
+            ""
+          ],
+          "bass_grid": [
+            {
+              "note": "-",
+              "base_slot": 0,
+              "path": [
+                1,
+                1,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "A3",
+              "base_slot": 0,
+              "path": [
+                1,
+                1,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "G#3",
+              "base_slot": 1,
+              "path": [
+                1,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "G#3",
+              "base_slot": 1,
+              "path": [
+                1,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "A3",
+              "base_slot": 2,
+              "path": [
+                2,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 3,
+              "path": [
+                2,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "A3",
+              "base_slot": 4,
+              "path": [
+                3,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 5,
+              "path": [
+                3,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 6,
+              "path": [
+                4,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 7,
+              "path": [
+                4,
+                2
+              ],
+              "divisions": []
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "Am",
+          "accidental": "sharp",
+          "split": true,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "F",
+          "octave_1_2": 3,
+          "chord_3_4": "G",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "",
+            "A3",
+            "A3",
+            "C4",
+            "-",
+            "G3",
+            "",
+            "E3"
+          ],
+          "bass_grid": [
+            {
+              "note": "",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "A3",
+              "base_slot": 1,
+              "path": [
+                1,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "G3",
+              "base_slot": 1,
+              "path": [
+                1,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "A3",
+              "base_slot": 2,
+              "path": [
+                2,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "C4",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "B3",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "-",
+              "base_slot": 4,
+              "path": [
+                3,
+                1,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "A3",
+              "base_slot": 4,
+              "path": [
+                3,
+                1,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "G3",
+              "base_slot": 5,
+              "path": [
+                3,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 6,
+              "path": [
+                4,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "E3",
+              "base_slot": 7,
+              "path": [
+                4,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "G3",
+              "base_slot": 7,
+              "path": [
+                4,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": true,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "F",
+          "octave_3_4": 3,
+          "split_1_2": true,
+          "split_3_4": false,
+          "chord_1": "Am",
+          "octave_1": 3,
+          "chord_2": "Am7",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "G",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "A3",
+            "-",
+            "A3",
+            "-",
+            "A3",
+            "-",
+            "",
+            "E4"
+          ],
+          "bass_grid": [
+            {
+              "note": "A3",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 1,
+              "path": [
+                1,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "G3",
+              "base_slot": 1,
+              "path": [
+                1,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "A3",
+              "base_slot": 2,
+              "path": [
+                2,
+                1,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "C4",
+              "base_slot": 2,
+              "path": [
+                2,
+                1,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "-",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "C4",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "A3",
+              "base_slot": 4,
+              "path": [
+                3,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 5,
+              "path": [
+                3,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 6,
+              "path": [
+                4,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "E4",
+              "base_slot": 7,
+              "path": [
+                4,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "D4",
+              "base_slot": 7,
+              "path": [
+                4,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": true,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "Esus4",
+          "octave_1_2": 3,
+          "chord_3_4": "E7",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "E4",
+            "-",
+            "",
+            "",
+            "C4",
+            "-",
+            "B3",
+            "-"
+          ],
+          "bass_grid": [
+            {
+              "note": "E4",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 1,
+              "path": [
+                1,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 2,
+              "path": [
+                2,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "D4",
+              "base_slot": 3,
+              "path": [
+                2,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "C4",
+              "base_slot": 4,
+              "path": [
+                3,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 5,
+              "path": [
+                3,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "B3",
+              "base_slot": 6,
+              "path": [
+                4,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 7,
+              "path": [
+                4,
+                2,
+                1
+              ],
+              "divisions": [
+                2
+              ]
+            },
+            {
+              "note": "B3",
+              "base_slot": 7,
+              "path": [
+                4,
+                2,
+                2
+              ],
+              "divisions": [
+                2
+              ]
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": true,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "Asus4",
+          "octave_1_2": 3,
+          "chord_3_4": "A",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "A3",
+            "-",
+            "-",
+            "-",
+            "-",
+            "-",
+            "",
+            ""
+          ],
+          "bass_grid": [
+            {
+              "note": "A3",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 1,
+              "path": [
+                1,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 2,
+              "path": [
+                2,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 3,
+              "path": [
+                2,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 4,
+              "path": [
+                3,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "-",
+              "base_slot": 5,
+              "path": [
+                3,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 6,
+              "path": [
+                4,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 7,
+              "path": [
+                4,
+                2
+              ],
+              "divisions": []
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "bass_grid": [
+            {
+              "note": "",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 1,
+              "path": [
+                1,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 2,
+              "path": [
+                2,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 3,
+              "path": [
+                2,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 4,
+              "path": [
+                3,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 5,
+              "path": [
+                3,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 6,
+              "path": [
+                4,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 7,
+              "path": [
+                4,
+                2
+              ],
+              "divisions": []
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "bass_grid": [
+            {
+              "note": "",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 1,
+              "path": [
+                1,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 2,
+              "path": [
+                2,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 3,
+              "path": [
+                2,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 4,
+              "path": [
+                3,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 5,
+              "path": [
+                3,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 6,
+              "path": [
+                4,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 7,
+              "path": [
+                4,
+                2
+              ],
+              "divisions": []
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "bass_grid": [
+            {
+              "note": "",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 1,
+              "path": [
+                1,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 2,
+              "path": [
+                2,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 3,
+              "path": [
+                2,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 4,
+              "path": [
+                3,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 5,
+              "path": [
+                3,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 6,
+              "path": [
+                4,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 7,
+              "path": [
+                4,
+                2
+              ],
+              "divisions": []
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "bass_grid": [
+            {
+              "note": "",
+              "base_slot": 0,
+              "path": [
+                1,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 1,
+              "path": [
+                1,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 2,
+              "path": [
+                2,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 3,
+              "path": [
+                2,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 4,
+              "path": [
+                3,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 5,
+              "path": [
+                3,
+                2
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 6,
+              "path": [
+                4,
+                1
+              ],
+              "divisions": []
+            },
+            {
+              "note": "",
+              "base_slot": 7,
+              "path": [
+                4,
+                2
+              ],
+              "divisions": []
+            }
+          ],
+          "bass_grid_base": "8分音符"
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        },
+        {
+          "key": "A",
+          "accidental": "sharp",
+          "split": false,
+          "chord": "",
+          "octave": 3,
+          "chord_1_2": "",
+          "octave_1_2": 3,
+          "chord_3_4": "",
+          "octave_3_4": 3,
+          "split_1_2": false,
+          "split_3_4": false,
+          "chord_1": "",
+          "octave_1": 3,
+          "chord_2": "",
+          "octave_2": 3,
+          "chord_3": "",
+          "octave_3": 3,
+          "chord_4": "",
+          "octave_4": 3,
+          "on_bass": "",
+          "on_bass_1_2": "",
+          "on_bass_3_4": "",
+          "on_bass_1": "",
+          "on_bass_2": "",
+          "on_bass_3": "",
+          "on_bass_4": "",
+          "resolution": "",
+          "bass": [],
+          "bass_grid": [],
+          "bass_grid_base": ""
+        }
+      ]
+    }
+  ]
+}
