@@ -30,8 +30,9 @@ FLAT_TO_SHARP = {v:k for k,v in SHARP_TO_FLAT.items()}
 NOTE_TO_PC = {'C':0,'C#':1,'Db':1,'D':2,'D#':3,'Eb':3,'E':4,'F':5,'F#':6,'Gb':6,'G':7,'G#':8,'Ab':8,'A':9,'A#':10,'Bb':10,'B':11}
 DEGREE_NAMES_SHARP = ['Ⅰ','♯Ⅰ','Ⅱ','♯Ⅱ','Ⅲ','Ⅳ','♯Ⅳ','Ⅴ','♯Ⅴ','Ⅵ','♯Ⅵ','Ⅶ']
 DEGREE_NAMES_FLAT = ['Ⅰ','♭Ⅱ','Ⅱ','♭Ⅲ','Ⅲ','Ⅳ','♭Ⅴ','Ⅴ','♭Ⅵ','Ⅵ','♭Ⅶ','Ⅶ']
-CHORD_TYPES = ['', 'm', '7', 'maj7', 'm7', 'm7b5', 'dim', 'dim7', 'aug', 'sus4', '7sus4']
-CHORDS = [r+t for t in CHORD_TYPES for r in ROOTS]
+CHORD_TYPES = ['', 'm', '7', 'maj7', 'm7', 'mM7', 'm7b5', 'dim', 'dim7', 'aug', 'sus4', '7sus4']
+CHORD_ROOTS = ROOTS + [r for r in ('Db','Ab') if r not in ROOTS]
+CHORDS = [r+t for t in CHORD_TYPES for r in CHORD_ROOTS]
 RESOLUTIONS = {'4分音符':1,'8分音符':2,'16分音符':4,'32分音符':8}
 INTERVAL_NAMES = {0:'R',1:'m2',2:'M2',3:'m3',4:'M3',5:'P4',6:'A4/d5',7:'P5',8:'m6',9:'M6',10:'m7',11:'M7'}
 
@@ -55,6 +56,9 @@ class Bar:
         self.on_bass=''
         self.on_bass_1_2=''; self.on_bass_3_4=''
         self.on_bass_1=''; self.on_bass_2=''; self.on_bass_3=''; self.on_bass_4=''
+        self.tension=''
+        self.tension_1_2=''; self.tension_3_4=''
+        self.tension_1=''; self.tension_2=''; self.tension_3=''; self.tension_4=''
         self.resolution=''  # 空欄ならTrackの分解能を継承
         self.bass=[]
         self.bass_grid=[]
@@ -211,7 +215,7 @@ def chord_notes(chord,octv):
     if root is None:
         return []
     suffix=chord[len(root):]
-    intervals={'':[0,4,7],'m':[0,3,7],'maj7':[0,4,7,11],'m7':[0,3,7,10],'7':[0,4,7,10],'m7b5':[0,3,6,10],'dim7':[0,3,6,9],'dim':[0,3,6],'aug':[0,4,8],'sus4':[0,5,7],'7sus4':[0,5,7,10]}
+    intervals={'':[0,4,7],'m':[0,3,7],'maj7':[0,4,7,11],'m7':[0,3,7,10],'mM7':[0,3,7,11],'7':[0,4,7,10],'m7b5':[0,3,6,10],'dim7':[0,3,6,9],'dim':[0,3,6],'aug':[0,4,8],'sus4':[0,5,7],'7sus4':[0,5,7,10]}
     if suffix not in intervals:
         return []
     root_midi=midi_from_pc_oct(root,octv)
@@ -227,9 +231,21 @@ def slash_bass_midi(on_bass, chord_note_midis):
     while n%12!=target:n-=1
     return n
 
-def chord_notes_with_slash(chord,octv,on_bass=''):
+def tension_intervals(text):
+    """9/11等のテンション文字列をルートからの半音差へ変換。例: 9,11 / b9,#11"""
+    text=(text or '').strip()
+    if not text:return []
+    table={'b9':13,'9':14,'#9':15,'11':17,'#11':18,'b13':20,'13':21}
+    tokens=re.split(r'[,/\\\s]+',text)
+    return [table[t] for t in tokens if t in table]
+
+def chord_notes_with_slash(chord,octv,on_bass='',tension=''):
     notes=chord_notes(chord,octv)
     if not notes:return []
+    root=chord_root(chord)
+    if root is not None:
+        root_midi=midi_from_pc_oct(root,octv)
+        notes=notes+[root_midi+x for x in tension_intervals(tension)]
     bass=slash_bass_midi(on_bass,notes)
     return sorted(set(notes if bass is None else [bass]+notes))
 
@@ -436,6 +452,9 @@ class App:
         self.batch_chord_var=tk.StringVar(value='')
         self.midi_path=None
         self.temp_work_path=Path.home()/'.bass_midi_gui_pc_work.json'
+        self.current_project_path=None
+        self.root.bind('<Command-s>',self.shortcut_overwrite_project)
+        self.root.bind('<Control-s>',self.shortcut_overwrite_project)
         self.player_process=None
         self._bar_clipboard=None
         style=ttk.Style()
@@ -555,25 +574,37 @@ class App:
         self.add_track()
         return 'break'
 
+    def track_has_chord_input(self,track):
+        for b in track.get('bars',[]):
+            values=[
+                getattr(b,'chord',''),getattr(b,'chord_1_2',''),getattr(b,'chord_3_4',''),
+                getattr(b,'chord_1',''),getattr(b,'chord_2',''),getattr(b,'chord_3',''),getattr(b,'chord_4','')
+            ]
+            if any(str(v).strip() for v in values):
+                return True
+        return False
+
     def safe_midi_filename(self,name,index):
         name=(name or f'JBR_{index+1:02d}_').strip()
         name=re.sub(r'[\\/:*?"<>|]','_',name).rstrip('. ')
         return (name or f'JBR_{index+1:02d}_')+'.mid'
 
-    def export_midi_tracks(self,indices):
+    def export_midi_tracks(self,indices,chord_flags=None):
         indices=[i for i in indices if 0<=i<len(self.tracks)]
         if not indices:return
         self.commit_current_view()
         self.sync_track_settings()
         folder=filedialog.askdirectory(title='MIDI保存先フォルダを選択')
         if not folder:return
+        chord_flags=chord_flags or {}
         original=self.current_track
         try:
             for i in indices:
                 self.current_track=i
                 self.load_track_settings()
                 path=os.path.join(folder,self.safe_midi_filename(self.tracks[i].get('name'),i))
-                self.create_midi_current(path)
+                include_chords=bool(chord_flags.get(i,False)) and self.track_has_chord_input(self.tracks[i])
+                self.create_midi_current(path,include_chords=include_chords)
         finally:
             self.current_track=max(0,min(original,len(self.tracks)-1))
             self.load_track_settings()
@@ -584,10 +615,10 @@ class App:
         win=tk.Toplevel(self.root)
         win.title('MIDI出力')
         win.transient(self.root)
-        win.geometry('560x470')
+        win.geometry('680x500')
         outer=ttk.Frame(win,padding=12)
         outer.pack(fill='both',expand=True)
-        ttk.Label(outer,text='出力するExを選択',font=('',12,'bold')).pack(anchor='w',pady=(0,8))
+        ttk.Label(outer,text='出力するExとコード出力を選択',font=('',12,'bold')).pack(anchor='w',pady=(0,8))
         area=ttk.Frame(outer)
         area.pack(fill='both',expand=True)
         canvas=tk.Canvas(area,highlightthickness=0)
@@ -598,28 +629,52 @@ class App:
         canvas.configure(yscrollcommand=scroll.set)
         canvas.pack(side='left',fill='both',expand=True)
         scroll.pack(side='right',fill='y')
-        vars=[]
+
+        ttk.Label(frame,text='出力',font=('',10,'bold')).grid(row=0,column=0,padx=(8,4),pady=(0,6))
+        ttk.Label(frame,text='Ex / トラック名',font=('',10,'bold')).grid(row=0,column=1,padx=4,pady=(0,6),sticky='w')
+        ttk.Label(frame,text='コード出力',font=('',10,'bold')).grid(row=0,column=2,padx=10,pady=(0,6))
+
+        export_vars=[]
+        chord_vars=[]
         for i,t in enumerate(self.tracks):
-            v=tk.BooleanVar(value=True)
-            vars.append(v)
+            export_v=tk.BooleanVar(value=True)
+            chord_v=tk.BooleanVar(value=False)
+            export_vars.append(export_v)
+            chord_vars.append(chord_v)
             name=t.get('name') or f'JBR_{i+1:02d}_'
-            ttk.Checkbutton(frame,text=f'Ex {i+1:02d}   {name}',variable=v).pack(anchor='w',padx=8,pady=5)
+            ttk.Checkbutton(frame,variable=export_v).grid(row=i+1,column=0,padx=(8,4),pady=5)
+            ttk.Label(frame,text=f'Ex {i+1:02d}   {name}').grid(row=i+1,column=1,padx=4,pady=5,sticky='w')
+            cb=ttk.Checkbutton(frame,variable=chord_v)
+            cb.grid(row=i+1,column=2,padx=10,pady=5)
+            if not self.track_has_chord_input(t):
+                cb.state(['disabled'])
+
         buttons=ttk.Frame(outer)
         buttons.pack(fill='x',pady=(10,0))
+
+        def selected_payload(indices):
+            indices=[i for i in indices if 0<=i<len(self.tracks)]
+            return indices,{i:bool(chord_vars[i].get()) for i in indices}
+
         def checked():
-            selected=[i for i,v in enumerate(vars) if v.get()]
+            selected=[i for i,v in enumerate(export_vars) if v.get()]
             if not selected:
                 messagebox.showwarning('MIDI出力','出力するExを1つ以上選択してください。',parent=win)
                 return
+            selected,flags=selected_payload(selected)
             win.destroy()
-            self.export_midi_tracks(selected)
+            self.export_midi_tracks(selected,flags)
+
         def all_ex():
+            selected,flags=selected_payload(range(len(self.tracks)))
             win.destroy()
-            self.export_midi_tracks(range(len(self.tracks)))
+            self.export_midi_tracks(selected,flags)
+
         def current_ex():
-            idx=self.current_track
+            selected,flags=selected_payload([self.current_track])
             win.destroy()
-            self.export_midi_tracks([idx])
+            self.export_midi_tracks(selected,flags)
+
         ttk.Button(buttons,text='チェックしたExを出力',command=checked).pack(side='left',padx=3)
         ttk.Button(buttons,text='全Exを出力',command=all_ex).pack(side='left',padx=3)
         ttk.Button(buttons,text='編集中Exのみ',command=current_ex).pack(side='left',padx=3)
@@ -648,13 +703,11 @@ class App:
         ttk.Button(top,text='← 編集画面に戻る',command=self.close_file_menu).pack(side='left')
         ttk.Label(top,text='ファイル',font=('',18,'bold')).pack(side='left',padx=18)
 
-        # gridだけに依存せず、縦並びで確実に全操作を表示する。
         body=ttk.Frame(page)
-        body.pack(fill='both',expand=True)
-        body.columnconfigure(0,weight=1)
+        body.pack(fill='both',expand=True,anchor='nw')
+        body.columnconfigure(0,weight=0)
         body.columnconfigure(1,weight=0)
-        body.columnconfigure(2,weight=0)
-        body.columnconfigure(3,weight=1)
+        body.columnconfigure(2,weight=1)
 
         style=ttk.Style()
         style.configure('FileBig.TButton',font=('',19,'bold'),padding=(4,10))
@@ -668,21 +721,24 @@ class App:
             hit.bind('<Button-1>',lambda e,c=command:c())
             return btn
 
+        # 左列: 保存・出力
+        save_col=ttk.LabelFrame(body,text='保存・出力',padding=8)
+        save_col.grid(row=0,column=0,padx=(0,8),pady=4,sticky='nw')
+        file_button(save_col,0,'一時保存',self.save_temp_work)
+        file_button(save_col,1,'プロジェクト保存',self.save_project)
+        file_button(save_col,2,'上書き',self.overwrite_project)
+        file_button(save_col,3,'MIDI出力',self.open_midi_export)
+        file_button(save_col,4,'CSV保存',self.save_csv)
+
+        # 右列: 読み込み・再生
         load_col=ttk.LabelFrame(body,text='読み込み・再生',padding=8)
-        load_col.grid(row=0,column=1,padx=(0,6),pady=4,sticky='ns')
+        load_col.grid(row=0,column=1,padx=(8,0),pady=4,sticky='nw')
         file_button(load_col,0,'一時保存読込',self.load_temp_work)
         file_button(load_col,1,'プロジェクト読込',self.load_project)
         file_button(load_col,2,'MIDI読込',self.load_midi)
         file_button(load_col,3,'MIDI再生',self.play_midi)
         file_button(load_col,4,'停止',self.stop_midi)
         file_button(load_col,5,'CSV読込',self.load_csv)
-
-        save_col=ttk.LabelFrame(body,text='保存・出力',padding=8)
-        save_col.grid(row=0,column=2,padx=(6,0),pady=4,sticky='ns')
-        file_button(save_col,0,'一時保存',self.save_temp_work)
-        file_button(save_col,1,'プロジェクト保存',self.save_project)
-        file_button(save_col,2,'MIDI出力',self.open_midi_export)
-        file_button(save_col,3,'CSV保存',self.save_csv)
 
     def close_file_menu(self):
         """ファイルページから通常編集画面へ戻る。"""
@@ -1271,6 +1327,8 @@ class App:
         c1=tk.StringVar(value=getattr(b,'chord_1','')); c2=tk.StringVar(value=getattr(b,'chord_2','')); c3=tk.StringVar(value=getattr(b,'chord_3','')); c4=tk.StringVar(value=getattr(b,'chord_4',''))
         ob=tk.StringVar(value=getattr(b,'on_bass','')); ob12=tk.StringVar(value=getattr(b,'on_bass_1_2','')); ob34=tk.StringVar(value=getattr(b,'on_bass_3_4',''))
         ob1=tk.StringVar(value=getattr(b,'on_bass_1','')); ob2=tk.StringVar(value=getattr(b,'on_bass_2','')); ob3=tk.StringVar(value=getattr(b,'on_bass_3','')); ob4=tk.StringVar(value=getattr(b,'on_bass_4',''))
+        tn=tk.StringVar(value=getattr(b,'tension','')); tn12=tk.StringVar(value=getattr(b,'tension_1_2','')); tn34=tk.StringVar(value=getattr(b,'tension_3_4',''))
+        tn1=tk.StringVar(value=getattr(b,'tension_1','')); tn2=tk.StringVar(value=getattr(b,'tension_2','')); tn3=tk.StringVar(value=getattr(b,'tension_3','')); tn4=tk.StringVar(value=getattr(b,'tension_4',''))
         chord_oct=tk.IntVar(value=b.octave); oct12=tk.IntVar(value=b.octave_1_2); oct34=tk.IntVar(value=b.octave_3_4)
         oct1=tk.IntVar(value=getattr(b,'octave_1',3)); oct2=tk.IntVar(value=getattr(b,'octave_2',3)); oct3=tk.IntVar(value=getattr(b,'octave_3',3)); oct4=tk.IntVar(value=getattr(b,'octave_4',3))
         bar_res=tk.StringVar(value=b.resolution or 'Track')
@@ -1300,7 +1358,7 @@ class App:
         ttk.Label(chord_area,text='Chord',style='BarLabel.TLabel').place(x=2,y=0)
         degree_labels=[]
 
-        def chord_unit(parent,col,label,var,oct_var,onbass_var,span=1):
+        def chord_unit(parent,col,label,var,oct_var,onbass_var,tension_var,span=1):
             unit=ttk.Frame(parent); unit.grid(row=0,column=col,columnspan=span,sticky='nw',padx=0)
             if label:
                 ttk.Label(unit,text=label,font=('',13),anchor='w').pack(fill='x',pady=(0,0))
@@ -1313,27 +1371,30 @@ class App:
             ttk.Label(line,text='/',font=('',11,'bold')).pack(side='left')
             onbox=ttk.Entry(line,textvariable=onbass_var,width=2,justify='center',takefocus=True,style='Bar.TEntry')
             onbox.pack(side='left',ipadx=3,ipady=2)
+            ttk.Label(line,text='+',font=('',11,'bold')).pack(side='left',padx=(2,0))
+            tensionbox=ttk.Entry(line,textvariable=tension_var,width=5,justify='center',takefocus=True,style='Bar.TEntry')
+            tensionbox.pack(side='left',ipadx=2,ipady=2)
             dg=ttk.Label(unit,text='',foreground='blue',anchor='w',font=('',13,'bold'))
             dg.pack(fill='x',pady=(0,0))
             degree_labels.append((var,dg))
-            self.input_focus_widgets.extend([box,onbox])
+            self.input_focus_widgets.extend([box,onbox,tensionbox])
 
         def rebuild_chords():
             for w in chord_area.winfo_children():w.destroy()
             degree_labels.clear()
             if not split.get():
-                chord_unit(chord_area,0,'',chord,chord_oct,ob,span=4)
+                chord_unit(chord_area,0,'',chord,chord_oct,ob,tn,span=4)
             else:
                 if split12.get():
-                    chord_unit(chord_area,0,'1拍',c1,oct1,ob1)
-                    chord_unit(chord_area,1,'2拍',c2,oct2,ob2)
+                    chord_unit(chord_area,0,'1拍',c1,oct1,ob1,tn1)
+                    chord_unit(chord_area,1,'2拍',c2,oct2,ob2,tn2)
                 else:
-                    chord_unit(chord_area,0,'1-2拍',c12,oct12,ob12,span=2)
+                    chord_unit(chord_area,0,'1-2拍',c12,oct12,ob12,tn12,span=2)
                 if split34.get():
-                    chord_unit(chord_area,2,'3拍',c3,oct3,ob3)
-                    chord_unit(chord_area,3,'4拍',c4,oct4,ob4)
+                    chord_unit(chord_area,2,'3拍',c3,oct3,ob3,tn3)
+                    chord_unit(chord_area,3,'4拍',c4,oct4,ob4,tn4)
                 else:
-                    chord_unit(chord_area,2,'3-4拍',c34,oct34,ob34,span=2)
+                    chord_unit(chord_area,2,'3-4拍',c34,oct34,ob34,tn34,span=2)
             refresh_chord_degrees()
 
         bass_outer=ttk.Frame(frame); bass_outer.grid(row=3,column=0,sticky='ew',padx=0,pady=(1,2))
@@ -1454,10 +1515,20 @@ class App:
                         ).pack(side='left',padx=(1,0))
 
                     vr=tk.StringVar(value=item.get('note',''))
+
+                    # 度数表示は音高入力ボックスの上側に配置。
+                    degrees=tk.Frame(cell,bg='white'); degrees.pack(pady=0)
+                    dgk=tk.Label(degrees,text='',fg='green',bg='white',width=degree_widths[0],anchor='e',font=('',14,'bold'))
+                    dgk.pack(side='left',padx=(2,0),pady=0)
+                    dgc=tk.Label(degrees,text='',fg='purple',bg='white',width=degree_widths[1],anchor='w',font=('',14,'bold'))
+                    dgc.pack(side='left',padx=(0,0),pady=0)
+
                     ent=ttk.Entry(cell,textvariable=vr,width=note_width,justify='center',style='Bar.TEntry')
                     ent.pack(pady=0,ipadx=1,ipady=1)
                     ent.bind('<Return>',lambda e,v=vr:self.normalize_entry(v))
                     ent.bind('<FocusOut>',lambda e,v=vr:self.normalize_entry(v))
+                    for target in (degrees,dgk,dgc):
+                        target.bind('<Button-1>',lambda e,w=ent:w.focus_set())
 
                     def select_bass_entry(event=None,v=vr,it=item):
                         self._bass_mirror_source_var=v
@@ -1513,14 +1584,6 @@ class App:
                     if can_merge:
                         tiny_button(btns,'-',lambda i=idx:merge_bass_preserve(i),w=10,h=18,font_size=11)
 
-                    degrees=tk.Frame(cell,bg='white'); degrees.pack(pady=0)
-                    dgk=tk.Label(degrees,text='',fg='green',bg='white',width=degree_widths[0],anchor='e',font=('',14,'bold'))
-                    dgk.pack(side='left',padx=(2,0),pady=0)
-                    dgc=tk.Label(degrees,text='',fg='purple',bg='white',width=degree_widths[1],anchor='w',font=('',14,'bold'))
-                    dgc.pack(side='left',padx=(0,0),pady=0)
-                    for target in (degrees,dgk,dgc):
-                        target.bind('<Button-1>',lambda e,w=ent:w.focus_set())
-
                     def source_to_mirror(*args,v=vr,it=item):
                         if getattr(self,'_bass_mirror_source_var',None) is v:
                             self._bass_mirror_updating=True
@@ -1549,11 +1612,11 @@ class App:
 
         def apply_bar_controls():
             b.key=key.get(); b.split=split.get(); b.split_1_2=split12.get() if split.get() else False; b.split_3_4=split34.get() if split.get() else False
-            b.chord=chord.get().strip(); b.octave=chord_oct.get(); b.on_bass=ob.get().strip()
-            b.chord_1_2=c12.get().strip(); b.octave_1_2=oct12.get(); b.on_bass_1_2=ob12.get().strip()
-            b.chord_3_4=c34.get().strip(); b.octave_3_4=oct34.get(); b.on_bass_3_4=ob34.get().strip()
-            for n,var,ovar,obvar in [(1,c1,oct1,ob1),(2,c2,oct2,ob2),(3,c3,oct3,ob3),(4,c4,oct4,ob4)]:
-                setattr(b,f'chord_{n}',var.get().strip()); setattr(b,f'octave_{n}',ovar.get()); setattr(b,f'on_bass_{n}',obvar.get().strip())
+            b.chord=chord.get().strip(); b.octave=chord_oct.get(); b.on_bass=ob.get().strip(); b.tension=tn.get().strip()
+            b.chord_1_2=c12.get().strip(); b.octave_1_2=oct12.get(); b.on_bass_1_2=ob12.get().strip(); b.tension_1_2=tn12.get().strip()
+            b.chord_3_4=c34.get().strip(); b.octave_3_4=oct34.get(); b.on_bass_3_4=ob34.get().strip(); b.tension_3_4=tn34.get().strip()
+            for n,var,ovar,obvar,tnvar in [(1,c1,oct1,ob1,tn1),(2,c2,oct2,ob2,tn2),(3,c3,oct3,ob3,tn3),(4,c4,oct4,ob4,tn4)]:
+                setattr(b,f'chord_{n}',var.get().strip()); setattr(b,f'octave_{n}',ovar.get()); setattr(b,f'on_bass_{n}',obvar.get().strip()); setattr(b,f'tension_{n}',tnvar.get().strip())
             b.resolution='' if bar_res.get()=='Track' else bar_res.get()
             for idx,vr,_ in bass_vars:
                 if idx<len(b.bass_grid):b.bass_grid[idx]['note']=vr.get().strip()
@@ -1663,6 +1726,8 @@ class App:
             'chord_4':getattr(b,'chord_4',''),'octave_4':getattr(b,'octave_4',3),
             'on_bass':getattr(b,'on_bass',''),'on_bass_1_2':getattr(b,'on_bass_1_2',''),'on_bass_3_4':getattr(b,'on_bass_3_4',''),
             'on_bass_1':getattr(b,'on_bass_1',''),'on_bass_2':getattr(b,'on_bass_2',''),'on_bass_3':getattr(b,'on_bass_3',''),'on_bass_4':getattr(b,'on_bass_4',''),
+            'tension':getattr(b,'tension',''),'tension_1_2':getattr(b,'tension_1_2',''),'tension_3_4':getattr(b,'tension_3_4',''),
+            'tension_1':getattr(b,'tension_1',''),'tension_2':getattr(b,'tension_2',''),'tension_3':getattr(b,'tension_3',''),'tension_4':getattr(b,'tension_4',''),
             'resolution':b.resolution,'bass':list(b.bass),'bass_grid':copy.deepcopy(getattr(b,'bass_grid',[])),'bass_grid_base':getattr(b,'bass_grid_base','')}
 
     def dict_to_bar(self,item):
@@ -1672,8 +1737,9 @@ class App:
         b.chord_3_4=item.get('chord_3_4',''); b.octave_3_4=int(item.get('octave_3_4',3))
         b.split_1_2=bool(item.get('split_1_2',False)); b.split_3_4=bool(item.get('split_3_4',False))
         for n in range(1,5):
-            setattr(b,f'chord_{n}',item.get(f'chord_{n}','')); setattr(b,f'octave_{n}',int(item.get(f'octave_{n}',3))); setattr(b,f'on_bass_{n}',item.get(f'on_bass_{n}',''))
+            setattr(b,f'chord_{n}',item.get(f'chord_{n}','')); setattr(b,f'octave_{n}',int(item.get(f'octave_{n}',3))); setattr(b,f'on_bass_{n}',item.get(f'on_bass_{n}','')); setattr(b,f'tension_{n}',item.get(f'tension_{n}',''))
         b.on_bass=item.get('on_bass',''); b.on_bass_1_2=item.get('on_bass_1_2',''); b.on_bass_3_4=item.get('on_bass_3_4','')
+        b.tension=item.get('tension',''); b.tension_1_2=item.get('tension_1_2',''); b.tension_3_4=item.get('tension_3_4','')
         b.resolution=item.get('resolution','') or ''
         bass=item.get('bass',[]); b.bass=['' if x is None else str(x) for x in bass] if isinstance(bass,list) else []
         grid=item.get('bass_grid',[])
@@ -1724,9 +1790,39 @@ class App:
             if not path:
                 return
             Path(path).write_text(json.dumps(state,ensure_ascii=False,indent=2),encoding='utf-8')
+            self.current_project_path=Path(path)
+            self.root.title(f'Bass MIDI GUI PC v33 - {Path(path).name}')
             messagebox.showinfo('プロジェクト保存','複数Track対応のPC/iPhone共通プロジェクトを保存しました。')
         except Exception as e:
             messagebox.showerror('プロジェクト保存エラー',str(e))
+
+    def overwrite_project(self,event=None):
+        path=getattr(self,'current_project_path',None)
+        if not path:
+            messagebox.showinfo('上書き','上書き対象のJSONファイルがありません。\n先にプロジェクトを保存または読み込んでください。')
+            return 'break'
+        path=Path(path)
+        if path.suffix.lower()!='.json':
+            messagebox.showwarning('上書き','上書き対象はJSONファイルのみです。\nプロジェクト保存でJSONファイルを指定してください。')
+            return 'break'
+        ok=messagebox.askyesno(
+            '上書き確認',
+            f'次のJSONファイルへ上書きしますか？\n\n{path.name}'
+        )
+        if not ok:
+            return 'break'
+        try:
+            state=self.state_dict()
+            path.write_text(json.dumps(state,ensure_ascii=False,indent=2),encoding='utf-8')
+            self.current_project_path=path
+            self.root.title(f'Bass MIDI GUI PC v33 - {path.name}')
+            messagebox.showinfo('上書き保存',f'{path.name}\nを上書き保存しました。')
+        except Exception as e:
+            messagebox.showerror('上書き保存エラー',str(e))
+        return 'break'
+
+    def shortcut_overwrite_project(self,event=None):
+        return self.overwrite_project(event)
 
     def load_project(self):
         path=filedialog.askopenfilename(
@@ -1741,6 +1837,8 @@ class App:
             if state.get('format') not in (None,'bassproj','bass-midi-gui-project','bass-midi-gui-multitrack'):
                 raise ValueError('Bass MIDI GUIのプロジェクト形式ではありません。')
             self.apply_state_dict(state)
+            if Path(path).suffix.lower()=='.json':
+                self.current_project_path=Path(path)
             # macOS + Python.org 3.10/Tk 8.6 では、読込直後のNSAlert(messagebox)が
             # AppKit側でSIGABRTする場合があるため、成功時はモーダルダイアログを出さない。
             self.root.title(f'Bass MIDI GUI PC v33 - {Path(path).name}')
@@ -1975,51 +2073,56 @@ class App:
     def create_midi(self):
         self.open_midi_export()
 
-    def create_midi_current(self,output_path=None):
+    def create_midi_current(self,output_path=None,include_chords=False):
         self.commit_current_view()
         mid=MidiFile(ticks_per_beat=TICKS_PER_BEAT)
         bpm=int(self.bpm_var.get())
-        chord_track=MidiTrack()
-        mid.tracks.append(chord_track)
-        chord_track.append(MetaMessage('track_name',name='Chords'))
-        chord_track.append(MetaMessage('set_tempo',tempo=bpm2tempo(bpm)))
-        for chunk in self.encode_state_chunks():
-            chord_track.append(MetaMessage('text',text=chunk,time=0))
+        last=self.last_bar()
+        chord_enabled=bool(include_chords) and self.track_has_chord_input(self.tracks[self.current_track])
+        chord_track=None
+        if chord_enabled:
+            chord_track=MidiTrack()
+            mid.tracks.append(chord_track)
+            chord_track.append(MetaMessage('track_name',name='Chords'))
+            chord_track.append(MetaMessage('set_tempo',tempo=bpm2tempo(bpm)))
         bass_track=MidiTrack()
         mid.tracks.append(bass_track)
         bass_track.append(MetaMessage('track_name',name='Bass'))
+        bass_track.append(MetaMessage('set_tempo',tempo=bpm2tempo(bpm)))
+        # 埋め込み状態はChord出力の有無に関係なくBassトラックへ保持。
+        for chunk in self.encode_state_chunks():
+            bass_track.append(MetaMessage('text',text=chunk,time=0))
         # General MIDI: Electric Bass (finger) = program 34 (mido is 0-based, so 33)
         bass_track.append(Message('program_change',program=33,channel=1,time=0))
-        last=self.last_bar()
         if last<0:
             messagebox.showwarning('MIDI作成','入力されたデータがありません。')
             return
 
-        for bar_index in range(last+1):
-            b=self.data[bar_index]
-            def append_chord_segment(chord_text,octv,beats,on_bass=''):
-                notes=chord_notes_with_slash(chord_text,octv,on_bass)
-                duration=TICKS_PER_BEAT*beats
-                if notes:
-                    for n in notes: chord_track.append(Message('note_on',note=n,velocity=70,time=0))
-                    chord_track.append(Message('note_off',note=notes[0],velocity=0,time=duration))
-                    for n in notes[1:]: chord_track.append(Message('note_off',note=n,velocity=0,time=0))
+        if chord_enabled:
+            for bar_index in range(last+1):
+                b=self.data[bar_index]
+                def append_chord_segment(chord_text,octv,beats,on_bass='',tension=''):
+                    notes=chord_notes_with_slash(chord_text,octv,on_bass,tension)
+                    duration=TICKS_PER_BEAT*beats
+                    if notes:
+                        for n in notes: chord_track.append(Message('note_on',note=n,velocity=70,time=0))
+                        chord_track.append(Message('note_off',note=notes[0],velocity=0,time=duration))
+                        for n in notes[1:]: chord_track.append(Message('note_off',note=n,velocity=0,time=0))
+                    else:
+                        chord_track.append(Message('note_off',note=0,velocity=0,time=duration))
+                if not b.split:
+                    append_chord_segment(b.chord,b.octave,4,getattr(b,'on_bass',''),getattr(b,'tension',''))
                 else:
-                    chord_track.append(Message('note_off',note=0,velocity=0,time=duration))
-            if not b.split:
-                append_chord_segment(b.chord,b.octave,4,getattr(b,'on_bass',''))
-            else:
-                if getattr(b,'split_1_2',False):
-                    append_chord_segment(getattr(b,'chord_1',''),getattr(b,'octave_1',3),1,getattr(b,'on_bass_1',''))
-                    append_chord_segment(getattr(b,'chord_2',''),getattr(b,'octave_2',3),1,getattr(b,'on_bass_2',''))
-                else:
-                    append_chord_segment(b.chord_1_2,b.octave_1_2,2,getattr(b,'on_bass_1_2',''))
-                if getattr(b,'split_3_4',False):
-                    append_chord_segment(getattr(b,'chord_3',''),getattr(b,'octave_3',3),1,getattr(b,'on_bass_3',''))
-                    append_chord_segment(getattr(b,'chord_4',''),getattr(b,'octave_4',3),1,getattr(b,'on_bass_4',''))
-                else:
-                    append_chord_segment(b.chord_3_4,b.octave_3_4,2,getattr(b,'on_bass_3_4',''))
-
+                    if getattr(b,'split_1_2',False):
+                        append_chord_segment(getattr(b,'chord_1',''),getattr(b,'octave_1',3),1,getattr(b,'on_bass_1',''),getattr(b,'tension_1',''))
+                        append_chord_segment(getattr(b,'chord_2',''),getattr(b,'octave_2',3),1,getattr(b,'on_bass_2',''),getattr(b,'tension_2',''))
+                    else:
+                        append_chord_segment(b.chord_1_2,b.octave_1_2,2,getattr(b,'on_bass_1_2',''),getattr(b,'tension_1_2',''))
+                    if getattr(b,'split_3_4',False):
+                        append_chord_segment(getattr(b,'chord_3',''),getattr(b,'octave_3',3),1,getattr(b,'on_bass_3',''),getattr(b,'tension_3',''))
+                        append_chord_segment(getattr(b,'chord_4',''),getattr(b,'octave_4',3),1,getattr(b,'on_bass_4',''),getattr(b,'tension_4',''))
+                    else:
+                        append_chord_segment(b.chord_3_4,b.octave_3_4,2,getattr(b,'on_bass_3_4',''),getattr(b,'tension_3_4',''))
         # Bassは全小節を1本の連続列として処理する。
         # これにより '-' が小節境界を跨いでも直前音を延長できる。
         bass_segments=[]
