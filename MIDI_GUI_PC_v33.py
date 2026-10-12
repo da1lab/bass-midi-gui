@@ -21,17 +21,17 @@ VISIBLE_BARS = 4
 MIN_VISIBLE_BARS = 1
 MAX_VISIBLE_BARS = 32
 
-ROOTS = ['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B']
+ROOTS = ['C','C#','Db','D','D#','Eb','E','F','F#','Gb','G','G#','Ab','A','A#','Bb','B']
 KEYS = ROOTS + [r+'m' for r in ROOTS]
 FLAT_ROOTS = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B']
-ROOTS_ALL = ['C','C#','Db','D','D#','Eb','E','F','F#','Gb','G','G#','Ab','A','A#','Bb','B']
+ROOTS_ALL = list(ROOTS)
 SHARP_TO_FLAT = {'C#':'Db','D#':'Eb','F#':'Gb','G#':'Ab','A#':'Bb'}
 FLAT_TO_SHARP = {v:k for k,v in SHARP_TO_FLAT.items()}
 NOTE_TO_PC = {'C':0,'C#':1,'Db':1,'D':2,'D#':3,'Eb':3,'E':4,'F':5,'F#':6,'Gb':6,'G':7,'G#':8,'Ab':8,'A':9,'A#':10,'Bb':10,'B':11}
 DEGREE_NAMES_SHARP = ['Ⅰ','♯Ⅰ','Ⅱ','♯Ⅱ','Ⅲ','Ⅳ','♯Ⅳ','Ⅴ','♯Ⅴ','Ⅵ','♯Ⅵ','Ⅶ']
 DEGREE_NAMES_FLAT = ['Ⅰ','♭Ⅱ','Ⅱ','♭Ⅲ','Ⅲ','Ⅳ','♭Ⅴ','Ⅴ','♭Ⅵ','Ⅵ','♭Ⅶ','Ⅶ']
 CHORD_TYPES = ['', 'm', '7', 'maj7', 'm7', 'mM7', 'm7b5', 'dim', 'dim7', 'aug', 'sus4', '7sus4']
-CHORD_ROOTS = ROOTS + [r for r in ('Db','Ab') if r not in ROOTS]
+CHORD_ROOTS = list(ROOTS)
 CHORDS = [r+t for t in CHORD_TYPES for r in CHORD_ROOTS]
 RESOLUTIONS = {'4分音符':1,'8分音符':2,'16分音符':4,'32分音符':8}
 INTERVAL_NAMES = {0:'R',1:'m2',2:'M2',3:'m3',4:'M3',5:'P4',6:'A4/d5',7:'P5',8:'m6',9:'M6',10:'m7',11:'M7'}
@@ -864,7 +864,8 @@ class App:
         ttk.Label(table,text='入力済小節',anchor='center',font=('',12,'bold')).grid(row=0,column=2,padx=12,pady=(0,10),sticky='ew')
         ttk.Label(table,text='順序',anchor='center',font=('',12,'bold')).grid(row=0,column=3,padx=4,pady=(0,10))
         ttk.Label(table,text='複製',anchor='center',font=('',12,'bold')).grid(row=0,column=4,padx=4,pady=(0,10))
-        ttk.Label(table,text='',width=8).grid(row=0,column=5)
+        ttk.Label(table,text='ベース',anchor='center',font=('',12,'bold')).grid(row=0,column=5,padx=4,pady=(0,10))
+        ttk.Label(table,text='',width=8).grid(row=0,column=6)
         self._track_name_vars=[]
         for r,i in enumerate(range(start,end),start=1):
             ttk.Label(table,text=f'Ex {i+1:02d}',anchor='center',font=('',11)).grid(row=r,column=0,padx=(4,12),pady=7,sticky='ew')
@@ -884,7 +885,8 @@ class App:
             if i==0:up.state(['disabled'])
             if i==len(self.tracks)-1:down.state(['disabled'])
             ttk.Button(table,text='複製',command=lambda idx=i:self.duplicate_track_from_config(idx)).grid(row=r,column=4,padx=3,pady=7,sticky='ew')
-            ttk.Button(table,text='削除',command=lambda idx=i:self.delete_track_from_config(idx)).grid(row=r,column=5,padx=(4,2),pady=7,sticky='ew')
+            ttk.Button(table,text='ベースライン削除',command=lambda idx=i:self.clear_track_bass_from_config(idx)).grid(row=r,column=5,padx=3,pady=7,sticky='ew')
+            ttk.Button(table,text='削除',command=lambda idx=i:self.delete_track_from_config(idx)).grid(row=r,column=6,padx=(4,2),pady=7,sticky='ew')
 
     def save_track_name_from_config(self,idx,var):
         if 0<=idx<len(self.tracks):
@@ -946,6 +948,25 @@ class App:
         self.renumber_tracks()
         self.current_track=idx+1
         self._track_config_page_no=(idx+1)//8
+        self.render_track_config_page()
+
+    def clear_track_bass_from_config(self,idx):
+        self.save_visible_track_names()
+        if not (0<=idx<len(self.tracks)):
+            return
+        name=self.tracks[idx].get('name') or f'JBR_{idx+1:02d}_'
+        if not messagebox.askokcancel(
+            'ベースライン削除',
+            f'Ex {idx+1:02d}「{name}」のベースラインを削除します。\n\nコード、Key、拍分割、テンション等は残します。',
+            parent=self.root
+        ):
+            return
+        for b in self.tracks[idx].get('bars',[]):
+            b.bass=[]
+            b.bass_grid=[]
+            b.bass_grid_base=''
+        if idx==self.current_track:
+            self.data=self.tracks[idx]['bars']
         self.render_track_config_page()
 
     def delete_track_from_config(self,idx):
