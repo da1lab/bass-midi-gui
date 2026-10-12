@@ -207,6 +207,18 @@ def chord_interval(note,chord):
         return ''
     return INTERVAL_NAMES[(NOTE_TO_PC[note_pc]-NOTE_TO_PC[root])%12]
 
+def tension_degree_text(text,chord):
+    """テンション欄に音名を入力した場合、コードルート基準の度数を返す。"""
+    tokens=[x for x in re.split(r'[,/\\\s]+',(text or '').strip()) if x]
+    values=[]
+    for token in tokens:
+        pc,_=parse_note(token)
+        if pc is not None:
+            d=chord_interval(token,chord)
+            if d:values.append(d)
+    return ','.join(values)
+
+
 def chord_notes(chord,octv):
     chord=(chord or '').strip()
     if not chord:
@@ -457,6 +469,10 @@ class App:
         self.root.bind('<Control-s>',self.shortcut_overwrite_project)
         self.player_process=None
         self._bar_clipboard=None
+        self._bass_mirror_label_var=tk.StringVar(value='—')
+        self._bass_mirror_value_var=tk.StringVar(value='')
+        self._bass_mirror_source_var=None
+        self._bass_mirror_updating=False
         style=ttk.Style()
         style.configure('TButton',padding=(8,5))
         style.configure('TCombobox',padding=(1,1))
@@ -467,6 +483,15 @@ class App:
         style.configure('Bar.TCombobox',font=('',11),padding=(4,5,4,5))
         style.configure('Bar.TEntry',font=('',11),padding=(4,5,4,5))
         style.configure('BassMini.TButton',padding=(0,0),font=('',12,'bold'))
+
+        def mirror_to_source(*args):
+            if self._bass_mirror_updating:return
+            src=getattr(self,'_bass_mirror_source_var',None)
+            if src is not None:
+                try:src.set(self._bass_mirror_value_var.get())
+                except:pass
+        self._bass_mirror_value_var.trace_add('write',mirror_to_source)
+
         self.build_top()
         self.render()
 
@@ -555,6 +580,14 @@ class App:
         chord_box=ttk.Combobox(top2,textvariable=self.batch_chord_var,values=CHORDS,width=12,state='readonly')
         chord_box.pack(side='left',padx=2)
         ttk.Button(top2,text='適用',command=self.batch_chord_apply).pack(side='left',padx=2)
+
+        mirror=ttk.LabelFrame(top2,text='選択中 Bass',padding=(3,1))
+        mirror.pack(side='left',padx=(4,0),pady=0)
+        ttk.Label(mirror,textvariable=self._bass_mirror_label_var,font=('',10,'bold')).pack(side='left',padx=(0,4))
+        mirror_entry=ttk.Entry(mirror,textvariable=self._bass_mirror_value_var,width=5,justify='center',style='Bar.TEntry')
+        mirror_entry.pack(side='left',ipadx=2,ipady=1)
+        self._bass_mirror_entry=mirror_entry
+
         nav=ttk.Frame(self.root)
         nav.pack(fill='x',padx=8,pady=(0,6))
         self.prev_button=ttk.Button(nav,text='← 前の小節',command=lambda:self.move_page(-1))
@@ -1219,6 +1252,7 @@ class App:
         self.committers=[]
         self.visible_key_vars=[]
         self.input_focus_widgets=[]
+        self._bass_mirror_source_var=None
         for w in self.widgets:
             w.destroy()
         self.widgets=[]
@@ -1227,32 +1261,13 @@ class App:
         end=min(start+visible,len(self.data))
         self.page_label.config(text=f'{start+1}～{end}小節 / 全{len(self.data)}小節')
         container=ttk.Frame(self.root)
-        container.pack(fill='both',expand=True,padx=2,pady=4)
+        container.pack(fill='both',expand=True,padx=2,pady=(0,2))
         self.widgets.append(container)
-        # 右上: 選択中Bass入力のミラー表示。横スクロール外でも内容を確認・編集できる。
-        mirror=ttk.LabelFrame(container,text='選択中 Bass',padding=(4,3))
-        mirror.grid(row=0,column=1,sticky='ne',padx=(2,2),pady=(0,3))
-        self._bass_mirror_label_var=tk.StringVar(value='—')
-        self._bass_mirror_value_var=tk.StringVar(value='')
-        ttk.Label(mirror,textvariable=self._bass_mirror_label_var,font=('',11,'bold')).pack(side='left',padx=(0,6))
-        mirror_entry=ttk.Entry(mirror,textvariable=self._bass_mirror_value_var,width=5,justify='center',style='Bar.TEntry')
-        mirror_entry.pack(side='left',ipadx=4,ipady=3)
-        self._bass_mirror_entry=mirror_entry
-        self._bass_mirror_source_var=None
-        self._bass_mirror_updating=False
-
-        def mirror_to_source(*args):
-            if self._bass_mirror_updating:return
-            src=getattr(self,'_bass_mirror_source_var',None)
-            if src is not None:
-                try:src.set(self._bass_mirror_value_var.get())
-                except:pass
-        self._bass_mirror_value_var.trace_add('write',mirror_to_source)
-
         legend=ttk.Frame(container)
-        legend.grid(row=0,column=0,sticky='w',padx=4,pady=(0,5))
-        tk.Label(legend,text='● Keyから見た度数',fg='green',font=('',14,'bold')).pack(side='left',padx=(0,18))
-        tk.Label(legend,text='● コードルートから見た度数',fg='purple',font=('',14,'bold')).pack(side='left')
+        legend.grid(row=0,column=0,columnspan=2,sticky='w',padx=4,pady=0)
+        tk.Label(legend,text='● Keyから見た度数',fg='green',font=('',14,'bold')).pack(side='left',padx=(0,12),pady=0)
+        tk.Label(legend,text='● コードルートから見た度数',fg='purple',font=('',14,'bold')).pack(side='left',padx=(0,12),pady=0)
+        tk.Label(legend,text='● Keyから見たコード',fg='blue',font=('',14,'bold')).pack(side='left',pady=0)
         for c in range(2):
             container.columnconfigure(c,weight=1,uniform='barcols',minsize=560)
         for pos,i in enumerate(range(start,end)):
@@ -1357,6 +1372,7 @@ class App:
             chord_area.columnconfigure(beat_col,weight=1,uniform='chordbeats')
         ttk.Label(chord_area,text='Chord',style='BarLabel.TLabel').place(x=2,y=0)
         degree_labels=[]
+        tension_degree_labels=[]
 
         def chord_unit(parent,col,label,var,oct_var,onbass_var,tension_var,span=1):
             unit=ttk.Frame(parent); unit.grid(row=0,column=col,columnspan=span,sticky='nw',padx=0)
@@ -1374,14 +1390,18 @@ class App:
             ttk.Label(line,text='+',font=('',11,'bold')).pack(side='left',padx=(2,0))
             tensionbox=ttk.Entry(line,textvariable=tension_var,width=5,justify='center',takefocus=True,style='Bar.TEntry')
             tensionbox.pack(side='left',ipadx=2,ipady=2)
+            tdg=ttk.Label(line,text='',foreground='blue',anchor='w',font=('',11,'bold'))
+            tdg.pack(side='left',padx=(3,0))
             dg=ttk.Label(unit,text='',foreground='blue',anchor='w',font=('',13,'bold'))
             dg.pack(fill='x',pady=(0,0))
             degree_labels.append((var,dg))
+            tension_degree_labels.append((var,tension_var,tdg))
             self.input_focus_widgets.extend([box,onbox,tensionbox])
 
         def rebuild_chords():
             for w in chord_area.winfo_children():w.destroy()
             degree_labels.clear()
+            tension_degree_labels.clear()
             if not split.get():
                 chord_unit(chord_area,0,'',chord,chord_oct,ob,tn,span=4)
             else:
@@ -1398,7 +1418,6 @@ class App:
             refresh_chord_degrees()
 
         bass_outer=ttk.Frame(frame); bass_outer.grid(row=3,column=0,sticky='ew',padx=0,pady=(1,2))
-        ttk.Label(bass_outer,text='Bass',font=('',10,'bold')).pack(anchor='w',pady=(0,0))
         canvas=tk.Canvas(bass_outer,height=120,highlightthickness=0)
         hbar=ttk.Scrollbar(bass_outer,orient='horizontal',command=canvas.xview); canvas.configure(xscrollcommand=hbar.set)
         canvas.pack(fill='x',expand=True); hbar.pack(fill='x')
@@ -1608,6 +1627,8 @@ class App:
 
         def refresh_chord_degrees(*args):
             for var,dg in degree_labels:dg.config(text=chord_degree(var.get(),key.get()))
+            for chord_var,tension_var,tdg in tension_degree_labels:
+                tdg.config(text=tension_degree_text(tension_var.get(),chord_var.get()))
             refresh_bass_degrees()
 
         def apply_bar_controls():
@@ -1655,7 +1676,7 @@ class App:
         split_cb.configure(command=split_changed); split12_cb.configure(command=child_changed); split34_cb.configure(command=child_changed)
         bar_res_box.bind('<<ComboboxSelected>>',bar_res_changed)
         key_box.bind('<<ComboboxSelected>>',lambda e:refresh_chord_degrees())
-        for var in (chord,c12,c34,c1,c2,c3,c4,key):var.trace_add('write',refresh_chord_degrees)
+        for var in (chord,c12,c34,c1,c2,c3,c4,key,tn,tn12,tn34,tn1,tn2,tn3,tn4):var.trace_add('write',refresh_chord_degrees)
         if split.get():
             split12_cb.pack(side='left',padx=(0,4)); split34_cb.pack(side='left')
         rebuild_chords(); rebuild_bass_grid(); refresh_chord_degrees()
